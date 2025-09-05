@@ -1613,64 +1613,91 @@ function drawIndoorThermostatOnChart() {
     });
 }
 
-     // Thay thế hàm drawExcessiveCoolingChart() cũ bằng hàm này
+     
 function drawExcessiveCoolingChart() {
     const chartContainer = document.getElementById('excessiveCoolingChart_div');
     const dataToUse = displayChartData.indoor;
-    if (!dataToUse || dataToUse.length < 2) { 
-        chartContainer.innerHTML = t('noValidData'); 
-        return; 
+    if (!dataToUse || dataToUse.length < 2) {
+        chartContainer.innerHTML = t('noValidData');
+        return;
     }
-    
     const headers = dataToUse[0];
-    const colIndices = getColumnIndices(headers);
-    const indoorNameColIndex = colIndices.indoor_name; 
-    const setpointTempColIndex = colIndices.setpoint_temperature; 
-    const operationTimeColIndex = colIndices.operation_time;
-    
-    if (indoorNameColIndex === undefined || setpointTempColIndex === undefined || operationTimeColIndex === undefined) { 
-        chartContainer.innerHTML = t('missingColumns'); 
-        return; 
+    // Đổi tên cột cho đúng với header bạn cung cấp
+    const indoorNameColIndex = headers.indexOf('Name');
+    const setpointTempColIndex = headers.indexOf('Setpoint_AVE');
+    const operationTimeColIndex = headers.indexOf('HourlyCoolOperatingTime');
+
+    if (
+        indoorNameColIndex === -1 ||
+        setpointTempColIndex === -1 ||
+        operationTimeColIndex === -1
+    ) {
+        chartContainer.innerHTML = t('missingColumns');
+        return;
     }
-    
+
+    // Chỉ lấy các dòng có setpoint_AVE < 22 và HourlyCoolOperatingTime > 0
     const excessiveCoolingData = new Map();
+    let hasValidSetpoint = false;
     for (let i = 1; i < dataToUse.length; i++) {
         const row = dataToUse[i];
-        const indoorName = row[indoorNameColIndex]; 
-        const setpointTemp = Number(row[setpointTempColIndex]); 
+        const indoorName = row[indoorNameColIndex];
+        const setpointTemp = Number(row[setpointTempColIndex]);
         const operationTime = Number(row[operationTimeColIndex]);
-        
-        if (indoorName && !isNaN(setpointTemp) && !isNaN(operationTime)) { 
-            if (setpointTemp < 22) { 
-                excessiveCoolingData.set(indoorName, (excessiveCoolingData.get(indoorName) || 0) + (operationTime / 60)); 
-            } 
+        if (
+            indoorName &&
+            indoorName.toString().trim() !== '' &&
+            !isNaN(setpointTemp) &&
+            !isNaN(operationTime) &&
+            setpointTemp < 22 &&
+            operationTime > 0
+        ) {
+            hasValidSetpoint = true;
+            excessiveCoolingData.set(
+                indoorName,
+                (excessiveCoolingData.get(indoorName) || 0) + operationTime // Đã là giờ rồi, không cần chia 60
+            );
         }
     }
-    
-    if (excessiveCoolingData.size === 0) { 
-        chartContainer.innerHTML = (currentLang === 'vi') ? 'Không có dàn lạnh nào cài đặt nhiệt độ < 22°C.' : 'No indoor unit has setpoint < 22°C.'; 
-        return; 
-    }
-    
-    let sortedExcessiveCoolingData = Array.from(excessiveCoolingData.entries()).map(([name, hours]) => ({
-        name,
-        hours
-    })).sort((a, b) => b.hours - a.hours);
 
-    // ✅ Áp dụng giới hạn Top N
-    sortedExcessiveCoolingData = limitDataToTopN(sortedExcessiveCoolingData, 'excessiveCooling');
-    
-    const chartData = [[ t('chartHeaders.indoorName'), t('chartHeaders.excessiveCooling') ]];
-    sortedExcessiveCoolingData.forEach(item => { 
-        chartData.push([item.name, item.hours]); 
-    });
-    
-    renderChart(google.visualization.BarChart, 'excessiveCoolingChart_div', chartData, '', { 
-        legend: { position: 'none' }, 
-        hAxis: { title: t('axis.operationHours') }, 
-        vAxis: { title: t('axis.indoorName') }, 
-        colors: ['#E74C3C'] 
-    });
+    if (!hasValidSetpoint || excessiveCoolingData.size === 0) {
+        chartContainer.innerHTML =
+            currentLang === 'vi'
+                ? 'Không có dữ liệu nhiệt độ cài đặt < 22°C và thời gian hoạt động > 0.'
+                : 'No setpoint temperature < 22°C and operation time > 0.';
+        return;
+    }
+
+    // Chỉ hiển thị các dàn lạnh có thời gian > 0
+    let filteredData = Array.from(excessiveCoolingData.entries())
+        .filter(([name, hours]) => name && name.toString().trim() !== '' && hours > 0)
+        .map(([name, hours]) => ({ name, hours }))
+        .sort((a, b) => b.hours - a.hours);
+
+    filteredData = limitDataToTopN(filteredData, 'excessiveCooling');
+
+    if (filteredData.length === 0) {
+        chartContainer.innerHTML =
+            currentLang === 'vi'
+                ? 'Không có dàn lạnh nào cài đặt nhiệt độ < 22°C và có giờ hoạt động > 0.'
+                : 'No indoor unit has setpoint < 22°C and operation time > 0.';
+        return;
+    }
+
+    const chartData = [[t('chartHeaders.indoorName'), t('chartHeaders.excessiveCooling')]];
+    filteredData.forEach(item => chartData.push([item.name, item.hours]));
+    renderChart(
+        google.visualization.BarChart,
+        'excessiveCoolingChart_div',
+        chartData,
+        '',
+        {
+            legend: { position: 'none' },
+            hAxis: { title: t('axis.operationHours') },
+            vAxis: { title: t('axis.indoorName') },
+            colors: ['#E74C3C']
+        }
+    );
 }
 
         function handleFileImport() {
@@ -1973,3 +2000,4 @@ function drawExcessiveCoolingChart() {
     </script>
 </body>
 </html>
+
