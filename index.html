@@ -1,86 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Phân tích Điện năng tiêu thụ</title>
-    <!-- Tải thư viện Google Charts -->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <!-- Tải thư thư viện SheetJS (xlsx.js) để đọc file Excel (.xlsx) -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-    <!-- [UI/UX UPDATE] Sử dụng font Segoe UI, một font sans-serif chuyên nghiệp và dễ đọc -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* [UI/UX UPDATE] 
-           - Áp dụng bảng màu Business Professional.
-           - Nền (Secondary): #F1F2F6 (Xám rất nhạt)
-           - Chữ chính (Primary): #2F3542 (Xám đậm)
-           - Nhấn (Accent): #3498DB (Xanh dương)
-           - Cảnh báo (Warning): #E74C3C (Đỏ)
-        */
         body {
-            font-family: 'Segoe UI', Arial, sans-serif; /* Cập nhật font chữ */
+            font-family: 'Segoe UI', Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #F1F2F6; /* Cập nhật màu nền */
-            padding: 24px; /* Tăng khoảng trắng tổng thể */
+            background-color: #F1F2F6;
+            padding: 24px;
             box-sizing: border-box;
-            color: #2F3542; /* Cập nhật màu chữ mặc định */
+            color: #2F3542;
         }
-
-        /* [UI/UX UPDATE] Cải thiện bố cục và khoảng trắng cho các container chính */
         .main-container {
             width: 95%;
-            max-width: 1200px; /* Tăng chiều rộng tối đa cho không gian rộng hơn */
-            background-color: #FFFFFF; /* Nền trắng cho các khối nội dung */
-            padding: 24px 32px; /* Tăng padding */
-            border-radius: 8px; /* Giảm bo góc cho vẻ ngoài sắc nét hơn */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Bóng đổ nhẹ nhàng hơn */
-            margin-bottom: 24px; /* Tăng khoảng cách giữa các khối */
-            border: 1px solid #dfe4ea; /* Thêm viền nhẹ */
+            max-width: 1200px;
+            background-color: #FFFFFF;
+            padding: 24px 32px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            border: 1px solid #dfe4ea;
             page-break-inside: avoid;
             break-inside: avoid;
         }
+        .main-container.print-after-header { margin-top: 36mm; }
+        .main-container.print-before-footer { margin-bottom: 18mm; }
 
-        /* Space reserved for print header/footer when added via JS */
-        .main-container.print-after-header {
-            margin-top: 36mm; /* reserve header space */
-        }
-        .main-container.print-before-footer {
-            margin-bottom: 18mm; /* reserve footer space */
-        }
+        h1, h2, h3 { margin: 0; padding: 0; font-weight: 700; color: #0A3D62; }
+        .report-header h1, .app-title { font-size: 24pt; margin-bottom: 8px; }
+        .report-header h2 { font-size: 14pt; font-weight: 600; color: #57606f; margin-bottom: 4px; }
+        .report-header h3 { font-size: 11pt; font-weight: 400; color: #57606f; }
 
-        /* [UI/UX UPDATE] Thiết lập hệ thống phân cấp Typography rõ ràng */
-        h1, h2, h3 {
-            margin: 0;
-            padding: 0;
-            font-weight: 700;
-            color: #0A3D62; /* Màu xanh Navy cho tiêu đề */
-        }
-        
-        /* Tiêu đề chính của báo cáo */
-        .report-header h1, .app-title {
-            font-size: 24pt; /* Cỡ chữ lớn, in đậm */
-            margin-bottom: 8px;
-        }
-        
-        /* Tiêu đề phụ (tên công trình, ngày) */
-        .report-header h2 {
-            font-size: 14pt; /* Cỡ chữ nhỏ hơn */
-            font-weight: 600;
-            color: #57606f;
-            margin-bottom: 4px;
-        }
-        .report-header h3 {
-            font-size: 11pt;
-            font-weight: 400;
-            color: #57606f;
-        }
-
-        /* Tiêu đề của từng biểu đồ/bảng */
         .chart-title {
             font-size: 16pt;
             font-weight: 600;
@@ -93,52 +53,35 @@
             page-break-after: avoid;
         }
 
-.chart-controls {
-    background-color: #f8f9fa;
-    padding: 10px 15px;
-    border-radius: 6px;
-    border: 1px solid #dfe4ea;
-    font-size: 11pt;
-}
-
-.chart-controls label {
-    font-weight: 600;
-    color: #57606f;
-}
-
-.chart-controls input[type="number"] {
-    border: 1px solid #a4b0be;
-    padding: 4px 8px;
-    border-radius: 4px;
-    background-color: #ffffff;
-    font-size: 11pt;
-    transition: border-color 0.3s ease;
-}
-
-.chart-controls input[type="number"]:focus {
-    outline: none;
-    border-color: #3498DB;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-
-.chart-controls input[type="checkbox"] {
-    margin-right: 6px;
-    transform: scale(1.1);
-}
-
-/* Ẩn controls khi in */
-@media print {
-    .chart-controls {
-        display: none !important;
-    }
-}
-        /* Văn bản nội dung */
-        p, label, .selected-dates-summary {
+        .chart-controls {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #dfe4ea;
             font-size: 11pt;
-            line-height: 1.6;
+        }
+        .chart-controls label { font-weight: 600; color: #57606f; }
+        .chart-controls input[type="number"] {
+            border: 1px solid #a4b0be;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #ffffff;
+            font-size: 11pt;
+            transition: border-color 0.3s ease;
+        }
+        .chart-controls input[type="number"]:focus {
+            outline: none;
+            border-color: #3498DB;
+            box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+        }
+        .chart-controls input[type="checkbox"] { margin-right: 6px; transform: scale(1.1); }
+
+        @media print {
+            .chart-controls { display: none !important; }
         }
 
-        /* [UI/UX UPDATE] Sắp xếp lại khu vực điều khiển (controls) */
+        p, label, .selected-dates-summary { font-size: 11pt; line-height: 1.6; }
+
         .controls-container {
             display: flex;
             flex-wrap: wrap;
@@ -146,15 +89,8 @@
             align-items: center;
             justify-content: space-between;
         }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .control-group label {
-            font-weight: 600;
-            color: #57606f;
-        }
+        .control-group { display: flex; align-items: center; gap: 12px; }
+        .control-group label { font-weight: 600; color: #57606f; }
         .controls-container input[type="file"] {
             border: 1px solid #a4b0be;
             padding: 8px 12px;
@@ -166,12 +102,11 @@
         .controls-container input[type="file"]:focus {
             outline: none;
             border-color: #3498DB;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
         }
 
-        /* [UI/UX UPDATE] Thiết kế lại nút bấm (buttons) */
         .controls-container button, .modal-content button {
-            background-color: #3498DB; /* Màu nhấn (Accent) */
+            background-color: #3498DB;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -180,22 +115,19 @@
             font-size: 10pt;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .controls-container button:hover, .modal-content button:hover {
-            background-color: #2980B9; /* Màu đậm hơn khi hover */
+            background-color: #2980B9;
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        /* Nút phụ (secondary button) */
         button.secondary, #closeDatePicker {
             background-color: #F1F2F6;
             color: #2F3542;
             border: 1px solid #a4b0be;
         }
-        button.secondary:hover, #closeDatePicker:hover {
-            background-color: #dfe4ea;
-        }
+        button.secondary:hover, #closeDatePicker:hover { background-color: #dfe4ea; }
 
         .selected-dates-summary {
             background-color: #e8f4fd;
@@ -206,107 +138,56 @@
             color: #0A3D62;
             text-align: center;
         }
-        .error-message {
-            color: #E74C3C; /* Màu cảnh báo (Warning) */
-            font-weight: 600;
-            font-size: 10pt;
-        }
+        .error-message { color: #E74C3C; font-weight: 600; font-size: 10pt; }
         .hidden { display: none !important; }
 
-        /* [UI/UX UPDATE] Cải thiện hiển thị bảng biểu (tables) */
-        .data-table {
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 10pt; }
+        .data-table th, .data-table td { border-bottom: 1px solid #dfe4ea; padding: 12px 16px; text-align: left; }
+        .data-table th { background-color: #F1F2F6; font-weight: 600; color: #0A3D62; }
+        .data-table tbody tr:nth-child(even) { background-color: #f8f9fa; }
+        .data-table tbody tr:hover { background-color: #e8f4fd; }
+        .data-table td:not(:first-child), .data-table th:not(:first-child) { text-align: right; }
+
+        /* Hourly table — single consolidated ruleset */
+        .hourly-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 16px;
-            font-size: 10pt;
+            font-size: 9pt;
+            table-layout: fixed;
         }
-        .data-table th, .data-table td {
-            border-bottom: 1px solid #dfe4ea;
-            padding: 12px 16px;
-            text-align: left;
-        }
-        .data-table th {
-            background-color: #F1F2F6;
-            font-weight: 600;
-            color: #0A3D62;
-        }
-        /* Zebra striping cho các hàng */
-        .data-table tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-        .data-table tbody tr:hover {
-            background-color: #e8f4fd;
-        }
-        /* Căn chỉnh số liệu sang phải */
-        .data-table td:not(:first-child), .data-table th:not(:first-child) {
-            text-align: right;
-        }
-
-.hourly-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 9pt;             /* chữ nhỏ để fit 24 cột */
-    table-layout: fixed;        /* ép cột có độ rộng theo % */
-}
-
-.hourly-table th, .hourly-table td {
-    border: 1px solid #dfe4ea;
-    padding: 4px;
-    text-align: center;
-    word-wrap: break-word;      /* cho phép xuống dòng */
-    white-space: normal;        /* không ép trên 1 dòng */
-}
-
-.night-hour {
-    background-color: #ffeeba !important; /* vàng nhạt cho khung giờ đêm */
-}
-
         .hourly-table th, .hourly-table td {
-    border-bottom: 1px solid #dfe4ea;
-    padding: 6px 10px;
-    text-align: center;
-    white-space: nowrap;
-}
-.hourly-table th.sticky-col, .hourly-table td.sticky-col {
-    position: sticky;
-    left: 0;
-    background: #fff;
-    z-index: 2;
-}
-.night-hour {
-    background-color: #ffeeba !important; /* Vàng nhạt cho khung giờ đêm */
-}
-
-        .hourly-table {
-            font-size: 0.8rem;
+            border: 1px solid #dfe4ea;
+            padding: 4px 6px;
+            text-align: center;
+            white-space: nowrap;
         }
-        .hourly-table th:first-child,
-.hourly-table td:first-child {
-    width: 160px;   /* bạn có thể chỉnh lớn hơn nếu tên dài */
-    text-align: left;
-    font-weight: bold;
-}
-.hourly-table th:last-child,
-.hourly-table td:last-child {
-    width: 80px;
-    font-weight: bold;
-}
-        .hourly-table thead th:first-child {
-             background-color: #F1F2F6;
+        .hourly-table th.sticky-col, .hourly-table td.sticky-col {
+            position: sticky;
+            left: 0;
+            background: #fff;
+            z-index: 2;
         }
-        .hourly-table tbody tr:nth-child(even) td:first-child {
-            background-color: #f8f9fa;
+        .hourly-table th:first-child, .hourly-table td:first-child {
+            width: 160px;
+            text-align: left;
+            font-weight: bold;
         }
+        .hourly-table th:last-child, .hourly-table td:last-child {
+            width: 80px;
+            font-weight: bold;
+        }
+        .hourly-table thead th:first-child { background-color: #F1F2F6; }
+        .hourly-table tbody tr:nth-child(even) td:first-child { background-color: #f8f9fa; }
+        .night-hour { background-color: #ffeeba !important; }
 
-
-        /* [UI/UX UPDATE] Thiết kế lại Modal chọn ngày */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0,0,0,0.6);
             display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .modal-content {
-            background-color: #fff; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background-color: #fff; border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             padding: 24px; max-width: 400px; width: 90%;
         }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
@@ -317,60 +198,31 @@
         .calendar-day.today { border: 2px solid #3498DB; }
         .calendar-day.disabled { color: #a4b0be; cursor: not-allowed; }
 
-        /* Print header/footer elements (hidden on screen) */
-        .print-header, .print-footer {
-            display: none;
-        }
+        .print-header, .print-footer { display: none; }
 
-        /* Đặt khổ giấy khi in */
-        @page {
-            size: A4 portrait;   /* portrait = dọc, có thể đổi thành landscape */
-            margin: 12mm 10mm; /* nhỏ hơn để có thể hiển thị nhiều nội dung nhưng vẫn trong A4 */
-        }
+        @page { size: A4 portrait; margin: 12mm 10mm; }
 
-        /* Chế độ in */
         @media print {
-            body {
-                background: #fff;
-                color: #000;
-                margin: 0;
-                font-size: 10pt;       /* chữ nhỏ hơn để fit A4 */
-                line-height: 1.4;
-            }
+            body { background: #fff; color: #000; margin: 0; font-size: 10pt; line-height: 1.4; }
 
-            /* show header/footer in print */
             .print-header, .print-footer {
                 display: block;
                 position: fixed;
-                left: 0;
-                right: 0;
-                width: 100%;
+                left: 0; right: 0; width: 100%;
                 z-index: 9999;
                 font-family: 'Segoe UI', Arial, sans-serif;
                 color: #2F3542;
             }
-
             .print-header {
-                top: 0;
-                height: 28mm;
+                top: 0; height: 28mm;
                 padding: 6mm 12mm 0 12mm;
                 border-bottom: 1px solid #dfe4ea;
                 background: white;
             }
-            .print-header .title {
-                font-weight: 700;
-                font-size: 14pt;
-                color: #0A3D62;
-            }
-            .print-header .meta {
-                font-size: 10pt;
-                color: #57606f;
-                margin-top: 4px;
-            }
-
+            .print-header .title { font-weight: 700; font-size: 14pt; color: #0A3D62; }
+            .print-header .meta { font-size: 10pt; color: #57606f; margin-top: 4px; }
             .print-footer {
-                bottom: 0;
-                height: 12mm;
+                bottom: 0; height: 12mm;
                 padding: 4mm 12mm;
                 border-top: 1px solid #dfe4ea;
                 background: white;
@@ -379,82 +231,48 @@
                 align-items: center;
                 font-size: 10pt;
             }
+            .print-footer .page-num::after { content: " " counter(page) " / " counter(pages); font-weight: 600; }
 
-            /* page number using CSS counters (browser support may vary) */
-            .print-footer .page-num::after {
-                content: " " counter(page) " / " counter(pages);
-                font-weight: 600;
-            }
-
-            /* Ensure main content doesn't overlap header/footer in print */
             .main-container {
                 box-shadow: none;
                 border: 1px solid #ccc;
-                margin: 0 0 12px 0;   /* khoảng cách giữa các khối */
+                margin: 0 0 12px 0;
                 padding: 12px;
-                page-break-inside: avoid;  /* không cắt khối giữa trang */
+                page-break-inside: avoid;
                 break-inside: avoid;
                 width: 100%;
                 max-width: none;
             }
+            .print-page-break { page-break-before: always; break-before: page; }
 
-            /* Force certain containers to start on a new page */
-            .print-page-break {
-                page-break-before: always;
-                break-before: page;
-            }
-
-            /* Ảnh hưởng đến chart sizes in print (standardized) */
-            #systemPowerChartActual,
-            #peakOffPeakPieChart_div,
-            #detailedPowerConsumptionChart_div,
-            #powerConsumptionTimeSeriesChart_div,
-            #dailyPowerConsumptionChart_div,
-            #indoorOperationTimeChart_div,
-            #indoorNightOperationChart_div_Chart,
-            #indoorThermostatOnChart_div,
+            #systemPowerChartActual, #peakOffPeakPieChart_div,
+            #detailedPowerConsumptionChart_div, #powerConsumptionTimeSeriesChart_div,
+            #dailyPowerConsumptionChart_div, #indoorOperationTimeChart_div,
+            #indoorNightOperationChart_div_Chart, #indoorThermostatOnChart_div,
             #excessiveCoolingChart_div {
                 width: 100% !important;
-                height: 360px !important; /* chuẩn hóa chiều cao in để tránh chồng chéo */
+                height: 360px !important;
                 min-height: 360px !important;
             }
-
-            /* Bảng in rõ ràng hơn */
-            .data-table {
-                font-size: 9pt;
-            }
-
-            /* Giảm padding tiêu đề để tiết kiệm không gian */
-            .chart-title {
-                margin-bottom: 8px;
-                padding-bottom: 6px;
-            }
-
-            /* For hourly table that might overflow, allow horizontal scroll in print preview */
-            .hourly-table {
-                font-size: 8pt;
-                white-space: nowrap;
-            }
+            .data-table { font-size: 9pt; }
+            .chart-title { margin-bottom: 8px; padding-bottom: 6px; }
+            .hourly-table { font-size: 8pt; white-space: nowrap; }
         }
-
     </style>
 </head>
 <body>
-    <!-- Print header/footer elements (filled via JS before print) -->
     <div class="print-header" aria-hidden="true" id="printHeader" style="display:none;">
         <div style="max-width:1200px; margin: 0 auto;">
             <div class="title" id="printHeaderTitle">BÁO CÁO PHÂN TÍCH HIỆU SUẤT HỆ THỐNG VRV</div>
             <div class="meta" id="printHeaderMeta">Tên công trình: Chưa tải dữ liệu — Thời gian báo cáo: Chưa tải dữ liệu</div>
         </div>
     </div>
-
     <div class="print-footer" aria-hidden="true" id="printFooter" style="display:none;">
         <div id="printFooterLeft">Generated by VRV Analyzer</div>
         <div id="printFooterCenter" style="text-align:center;">&nbsp;</div>
         <div id="printFooterRight" class="page-num">Trang</div>
     </div>
 
-    <!-- [UI/UX UPDATE] Cấu trúc lại header để thông tin rõ ràng hơn -->
     <div class="main-container">
         <div id="reportHeader" class="report-header">
             <h1 id="reportTitle">BÁO CÁO PHÂN TÍCH HIỆU SUẤT HỆ THỐNG VRV</h1>
@@ -462,175 +280,136 @@
             <h3 id="reportDate">Thời gian báo cáo: Chưa tải dữ liệu</h3>
         </div>
     </div>
-    
+
     <div class="main-container">
         <div class="controls-container">
             <div class="control-group">
                 <label id="fileInputLabel" for="fileInput">Tệp dữ liệu (CSV/JSON/XLSX):</label>
                 <input type="file" id="fileInput" accept=".csv, .json, .xlsx">
-                <button id="uploadAnalyzeBtn" onclick="handleFileImport()">Tải & Phân tích</button>
+                <button id="uploadAnalyzeBtn" onclick="handleFileImport()">Tải &amp; Phân tích</button>
             </div>
             <div class="control-group">
                 <button id="openDatePicker">Chọn Ngày</button>
                 <button id="clearDateFilter" class="secondary">Xem Tất Cả Ngày</button>
             </div>
-             <div class="control-group">
-                <button id="printBtn" onclick="window.print()" class="secondary">In Báo cáo 🖨️</button>
+            <div class="control-group">
+                <button id="printBtn" class="secondary">In Báo cáo 🖨️</button>
             </div>
-
-            <!-- Language toggle control -->
             <div class="control-group">
                 <label id="languageLabel" for="toggleLangBtn">Ngôn ngữ:</label>
                 <button id="toggleLangBtn" class="secondary">EN</button>
             </div>
         </div>
-         <div style="margin-top: 16px; width: 100%; text-align: center;">
+        <div style="margin-top: 16px; width: 100%; text-align: center;">
             <p id="selectedDatesSummary" class="selected-dates-summary">Ngày được chọn: Tất cả</p>
             <span id="errorMessage" class="error-message"></span>
         </div>
     </div>
-    
-    <!-- [UI/UX UPDATE] Bọc mỗi biểu đồ/bảng trong một .main-container để có giao diện nhất quán -->
+
     <div id="systemPowerChartWrapper" class="main-container print-page-break">
         <h2 class="chart-title">Tổng quan Điện năng Tiêu thụ Toàn Hệ thống</h2>
-        <div id="systemPowerChartActual" style="width: 100%; height: 400px;">
-            Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.
-        </div>
+        <div id="systemPowerChartActual" style="width:100%;height:400px;">Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.</div>
     </div>
 
     <div id="summaryTable_div_container" class="main-container">
         <h2 class="chart-title">Bảng Tổng hợp Dữ liệu Dàn nóng</h2>
-        <div id="summaryTable_div">
-            Vui lòng tải lên file dữ liệu để hiển thị bảng.
-        </div>
+        <div id="summaryTable_div">Vui lòng tải lên file dữ liệu để hiển thị bảng.</div>
     </div>
 
     <div id="peakOffPeakPieChart_div_container" class="main-container print-page-break">
         <h2 class="chart-title">Tỷ trọng Điện năng Tiêu thụ theo Khung Giờ</h2>
-        <div id="peakOffPeakPieChart_div" style="width: 100%; height: 400px;">
-            Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.
-        </div>
+        <div id="peakOffPeakPieChart_div" style="width:100%;height:400px;">Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.</div>
     </div>
 
     <div id="detailedPowerConsumptionChart_div_container" class="main-container print-page-break">
-        <h2 class="chart-title">Chi tiết Điện năng Tiêu thụ theo Dàn nóng & Khung giờ</h2>
-        <div id="detailedPowerConsumptionChart_div" style="width: 100%; height: 500px;">
-            Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.
-        </div>
+        <h2 class="chart-title">Chi tiết Điện năng Tiêu thụ theo Dàn nóng &amp; Khung giờ</h2>
+        <div id="detailedPowerConsumptionChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.</div>
     </div>
 
     <div id="powerConsumptionTimeSeriesChart_div_container" class="main-container print-page-break">
-        <h2 class="chart-title">Điện năng Tiêu thụ & Nhiệt độ Ngoài trời theo Thời gian</h2>
-        <div id="powerConsumptionTimeSeriesChart_div" style="width: 100%; height: 500px;">
-            Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.
-        </div>
+        <h2 class="chart-title">Điện năng Tiêu thụ &amp; Nhiệt độ Ngoài trời theo Thời gian</h2>
+        <div id="powerConsumptionTimeSeriesChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.</div>
     </div>
-    
+
     <div id="dailyPowerConsumptionChart_div_container" class="main-container print-page-break">
-        <h2 class="chart-title">Điện năng Tiêu thụ & Nhiệt độ Ngoài trời theo Ngày</h2>
-        <div id="dailyPowerConsumptionChart_div" style="width: 100%; height: 500px;">
-            Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.
-        </div>
+        <h2 class="chart-title">Điện năng Tiêu thụ &amp; Nhiệt độ Ngoài trời theo Ngày</h2>
+        <div id="dailyPowerConsumptionChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.</div>
     </div>
 
     <div id="peakOffPeakTable_div_container" class="main-container">
         <h2 class="chart-title">Bảng Phân tích Điện năng theo Khung giờ</h2>
-        <div id="peakOffPeakTable_div">
-            Vui lòng tải lên file dữ liệu để hiển thị bảng.
-        </div>
+        <div id="peakOffPeakTable_div">Vui lòng tải lên file dữ liệu để hiển thị bảng.</div>
     </div>
 
     <div id="indoorOperationTimeChart_div_container" class="main-container print-page-break">
         <h2 class="chart-title">Thời gian Hoạt động Dàn lạnh theo Nhiệt độ Cài đặt</h2>
-<div class="chart-controls" style="margin-bottom: 15px; display: flex; gap: 15px; align-items: center;">
-    <label for="indoorOperationTopN" id="indoorOperationTopNLabel">Hiển thị Top:</label>
-    <input type="number" id="indoorOperationTopN" min="1" max="50" value="10" style="width: 60px; padding: 4px;">
-    <label id="indoorOperationShowAllLabel">
-        <input type="checkbox" id="indoorOperationShowAll" checked> Hiển thị tất cả
-    </label>
-</div>
-        <div id="indoorOperationTimeChart_div" style="width: 100%; height: 500px;">
-            Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Setpoint temperature, Operation Time).
+        <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
+            <label for="indoorOperationTopN" id="indoorOperationTopNLabel">Hiển thị Top:</label>
+            <input type="number" id="indoorOperationTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
+            <label id="indoorOperationShowAllLabel"><input type="checkbox" id="indoorOperationShowAll" checked> Hiển thị tất cả</label>
         </div>
+        <div id="indoorOperationTimeChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Setpoint temperature, Operation Time).</div>
     </div>
 
     <div id="indoorNightOperationChart_div_Chart_container" class="main-container print-page-break">
         <h2 class="chart-title">Phân bố Thời gian Hoạt động Dàn lạnh (Ngày/Đêm)</h2>
-<div class="chart-controls" style="margin-bottom: 15px; display: flex; gap: 15px; align-items: center;">
-    <label for="indoorNightTopN" id="indoorNightTopNLabel">Hiển thị Top:</label>
-    <input type="number" id="indoorNightTopN" min="1" max="50" value="10" style="width: 60px; padding: 4px;">
-    <label id="indoorNightShowAllLabel">
-        <input type="checkbox" id="indoorNightShowAll" checked> Hiển thị tất cả
-    </label>
-</div>
-        <div id="indoorNightOperationChart_div_Chart" style="width: 100%; height: 500px;">
-            Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Date, Operation Time).
+        <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
+            <label for="indoorNightTopN" id="indoorNightTopNLabel">Hiển thị Top:</label>
+            <input type="number" id="indoorNightTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
+            <label id="indoorNightShowAllLabel"><input type="checkbox" id="indoorNightShowAll" checked> Hiển thị tất cả</label>
         </div>
+        <div id="indoorNightOperationChart_div_Chart" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Date, Operation Time).</div>
     </div>
 
     <div id="indoorNightOperationTable_div_container" class="main-container">
         <h2 class="chart-title">Bảng Phân tích Hoạt động Dàn lạnh Ban đêm (22:00 - 07:00)</h2>
-        <div id="indoorNightOperationTable_div">
-            Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Date, Operation Time).
-        </div>
+        <div id="indoorNightOperationTable_div">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Date, Operation Time).</div>
     </div>
 
     <div id="indoorThermostatOnChart_div_container" class="main-container print-page-break">
         <h2 class="chart-title">Thời gian Gọi tải Dàn lạnh (Thermostat ON/OFF)</h2>
-<div class="chart-controls" style="margin-bottom: 15px; display: flex; gap: 15px; align-items: center;">
-    <label for="indoorThermostatTopN" id="indoorThermostatTopNLabel">Hiển thị Top:</label>
-    <input type="number" id="indoorThermostatTopN" min="1" max="50" value="10" style="width: 60px; padding: 4px;">
-    <label id="indoorThermostatShowAllLabel">
-        <input type="checkbox" id="indoorThermostatShowAll" checked> Hiển thị tất cả
-    </label>
-</div>
-        <div id="indoorThermostatOnChart_div" style="width: 100%; height: 500px;">
-            Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Indoor_IntegratedThermoOnTime).
+        <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
+            <label for="indoorThermostatTopN" id="indoorThermostatTopNLabel">Hiển thị Top:</label>
+            <input type="number" id="indoorThermostatTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
+            <label id="indoorThermostatShowAllLabel"><input type="checkbox" id="indoorThermostatShowAll" checked> Hiển thị tất cả</label>
         </div>
+        <div id="indoorThermostatOnChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Indoor_IntegratedThermoOnTime).</div>
     </div>
-    
+
     <div id="excessiveCoolingChart_div_container" class="main-container print-page-break">
         <h2 class="chart-title">Thời gian Hoạt động Làm mát Quá mức (&lt; 22°C)</h2>
-<div class="chart-controls" style="margin-bottom: 15px; display: flex; gap: 15px; align-items: center;">
-    <label for="excessiveCoolingTopN" id="excessiveCoolingTopNLabel">Hiển thị Top:</label>
-    <input type="number" id="excessiveCoolingTopN" min="1" max="50" value="10" style="width: 60px; padding: 4px;">
-    <label id="excessiveCoolingShowAllLabel">
-        <input type="checkbox" id="excessiveCoolingShowAll" checked> Hiển thị tất cả
-    </label>
-</div>
-        <div id="excessiveCoolingChart_div" style="width: 100%; height: 500px;">
-            Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Setpoint temperature, Operation Time).
+        <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
+            <label for="excessiveCoolingTopN" id="excessiveCoolingTopNLabel">Hiển thị Top:</label>
+            <input type="number" id="excessiveCoolingTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
+            <label id="excessiveCoolingShowAllLabel"><input type="checkbox" id="excessiveCoolingShowAll" checked> Hiển thị tất cả</label>
         </div>
+        <div id="excessiveCoolingChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Setpoint temperature, Operation Time).</div>
     </div>
 
     <div id="indoorHourlyOperationTable_div_container" class="main-container">
-	<div style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
-    	<label for="nightStart" id="nightStartLabel">Giờ bắt đầu đêm:</label>
-    	<input type="number" id="nightStart" min="0" max="23" value="22" style="width:60px;">
-    	<label for="nightEnd" id="nightEndLabel">Giờ kết thúc đêm:</label>
-    	<input type="number" id="nightEnd" min="0" max="23" value="5" style="width:60px;">
-    	<button id="highlightNightBtn" onclick="highlightNightHours()">Tô màu giờ đêm 🌙</button>
-	</div>
-
         <h2 class="chart-title">Bảng Chi tiết Thời gian Hoạt động Dàn lạnh theo Giờ</h2>
-        <div id="indoorHourlyOperationTable_div">
-            Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Date, Operation Time).
+        <div style="margin-top:10px;display:flex;gap:10px;align-items:center;">
+            <label for="nightStart" id="nightStartLabel">Giờ bắt đầu đêm:</label>
+            <input type="number" id="nightStart" min="0" max="23" value="22" style="width:60px;">
+            <label for="nightEnd" id="nightEndLabel">Giờ kết thúc đêm:</label>
+            <input type="number" id="nightEnd" min="0" max="23" value="5" style="width:60px;">
+            <button id="highlightNightBtn" onclick="highlightNightHours()">Tô màu giờ đêm 🌙</button>
         </div>
+        <div id="indoorHourlyOperationTable_div">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Date, Operation Time).</div>
     </div>
 
-    <!-- Date Picker Modal -->
     <div id="datePickerModal" class="modal-overlay hidden">
         <div class="modal-content">
-            <div class="flex justify-between items-center mb-4" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
                 <button id="prevMonth" class="secondary">&lt;</button>
-                <h3 id="currentMonthYear" style="font-size: 1.2rem; font-weight: 600;">Tháng Năm</h3>
+                <h3 id="currentMonthYear" style="font-size:1.2rem;font-weight:600;">Tháng Năm</h3>
                 <button id="nextMonth" class="secondary">&gt;</button>
             </div>
-            <div class="calendar-weekdays" style="margin-bottom: 0.5rem;">
+            <div class="calendar-weekdays" style="margin-bottom:0.5rem;">
                 <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
             </div>
             <div id="calendarDays" class="calendar-grid"></div>
-            <div class="flex justify-end gap-3 mt-4" style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
+            <div style="display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1rem;">
                 <button id="closeDatePicker" class="secondary">Đóng</button>
                 <button id="applyDateSelection">Áp Dụng</button>
             </div>
@@ -638,1364 +417,1085 @@
     </div>
 
     <script type="text/javascript">
-        google.charts.load('current', {'packages':['corechart', 'bar']});
+    // Load only 'corechart' — 'bar' (Material) is not used anywhere
+    google.charts.load('current', {'packages': ['corechart']});
 
-        // --------------- I18N / Language toggle implementation ---------------
-        // Default language
-        let currentLang = 'vi'; // 'vi' or 'en'
+    // ─── I18N ────────────────────────────────────────────────────────────────
+    let currentLang = 'vi';
 
-        const i18n = {
-            vi: {
-                // UI labels
-                langLabel: 'Ngôn ngữ:',
-                toggleBtnText: 'EN',
-                reportTitle: 'BÁO CÁO PHÂN TÍCH HIỆU SUẤT HỆ THỐNG VRV',
-                projectLabel: 'Tên công trình:',
-                reportTimeLabel: 'Thời gian báo cáo:',
-                fileLabel: 'Tệp dữ liệu (CSV/JSON/XLSX):',
-                uploadAnalyze: 'Tải & Phân tích',
-                openDatePicker: 'Chọn Ngày',
-                clearDateFilter: 'Xem Tất Cả Ngày',
-                printBtn: 'In Báo cáo 🖨️',
-                selectedDatesAll: 'Ngày được chọn: Tất cả',
-                language: 'Ngôn ngữ',
-                noDataMessage: 'Vui lòng tải lên file dữ liệu để hiển thị.',
-                noValidData: 'Không có dữ liệu hợp lệ.',
-                missingNamePower: 'Thiếu cột "Name" hoặc "PowerConsumption".',
-                missingColumns: 'Lỗi: Thiếu cột cần thiết.',
-                errorReadingFilePrefix: 'Lỗi khi đọc tệp:',
-                pleaseSelectFile: 'Vui lòng chọn một tệp.',
-                unsupportedFileFormat: 'Định dạng tệp không được hỗ trợ.',
-                pleaseUploadData: 'Vui lòng tải dữ liệu.',
-                noDataForSelectedDates: 'Không có dữ liệu khớp với ngày đã chọn.',
-                // Chart/Table titles
-                totalPowerTitle: 'Tổng quan Điện năng Tiêu thụ Toàn Hệ thống',
-                summaryTableTitle: 'Bảng Tổng hợp Dữ liệu Dàn nóng',
-                pieChartTitle: 'Tỷ trọng Điện năng Tiêu thụ theo Khung Giờ',
-                detailedChartTitle: 'Chi tiết Điện năng Tiêu thụ theo Dàn nóng & Khung giờ',
-                timeSeriesTitle: 'Điện năng & Nhiệt độ theo Thời gian',
-                dailyTitle: 'Điện năng & Nhiệt độ theo Ngày',
-                peakOffPeakTableTitle: 'Bảng Phân tích Điện năng theo Khung giờ',
-                indoorOperationTitle: 'Thời gian Hoạt động Dàn lạnh theo Nhiệt độ Cài đặt',
-                indoorNightTitle: 'Phân bố Thời gian Hoạt động Dàn lạnh (Ngày/Đêm)',
-                indoorNightTableTitle: 'Bảng Phân tích Hoạt động Dàn lạnh Ban đêm (22:00 - 07:00)',
-                thermostatTitle: 'Thời gian Gọi tải Dàn lạnh (Thermostat ON/OFF)',
-                excessiveCoolingTitle: 'Thời gian Hoạt động Làm mát Quá mức (< 22°C)',
-                hourlyTableTitle: 'Bảng Chi tiết Thời gian Hoạt động Dàn lạnh theo Giờ',
-                showTopLabel: 'Hiển thị Top:',
-                showAllLabel: 'Hiển thị tất cả',
-                nightStartLabel: 'Giờ bắt đầu đêm:',
-                nightEndLabel: 'Giờ kết thúc đêm:',
-                highlightNightBtn: 'Tô màu giờ đêm 🌙',
-                // Table headers
-                summaryHeaders: ['Tên dàn nóng', 'Điện năng tiêu thụ (kWh)', 'Số giờ hoạt động (h)', 'Nhiệt độ ngoài trời TB (°C)'],
-                peakTableHeaders: ['Tên dàn nóng', 'Giờ cao điểm (kWh)', 'Giờ bình thường (kWh)', 'Giờ thấp điểm (kWh)', 'Tổng cộng (kWh)'],
-                indoorNightTableHeaders: ['Tên dàn lạnh', 'Tổng thời gian hoạt động ban đêm (giờ)', 'Tỷ lệ % hoạt động đêm', 'Tổng thời gian hoạt động (giờ)'],
-                hourlyTableHeadersPrefix: 'Tổng cộng',
-                pieLabels: { typeLabel: 'Loại giờ', peak: 'Giờ cao điểm', normal: 'Giờ bình thường', offPeak: 'Giờ thấp điểm' },
-                // chart headers and axis labels
-                chartHeaders: {
-                    name: 'Tên',
-                    energyConsumption: 'Điện năng tiêu thụ (kWh)',
-                    unitName: 'Tên dàn nóng',
-                    peak: 'Giờ cao điểm',
-                    normal: 'Giờ bình thường',
-                    offPeak: 'Giờ thấp điểm',
-                    time: 'Thời gian',
-                    outdoorTemp: 'Nhiệt độ ngoài trời (°C)',
-                    day: 'Ngày',
-                    indoorName: 'Tên dàn lạnh',
-                    nightOperation: 'Hoạt động đêm',
-                    dayOperation: 'Hoạt động ban ngày',
-                    thermoOn: 'Thermostat ON',
-                    thermoOff: 'Thermostat OFF',
-                    excessiveCooling: 'Thời gian hoạt động làm mát quá mức'
-                },
-                axis: {
-                    unitName: 'Tên dàn nóng',
-                    energyKwh: 'Điện năng tiêu thụ (kWh)',
-                    time: 'Thời gian',
-                    outdoorTempC: 'Nhiệt độ ngoài trời (°C)',
-                    dayOfMonth: 'Ngày trong tháng',
-                    operationHours: 'Thời gian hoạt động (giờ)',
-                    indoorName: 'Tên dàn lạnh'
-                }
+    const i18n = {
+        vi: {
+            langLabel: 'Ngôn ngữ:', toggleBtnText: 'EN',
+            reportTitle: 'BÁO CÁO PHÂN TÍCH HIỆU SUẤT HỆ THỐNG VRV',
+            projectLabel: 'Tên công trình:', reportTimeLabel: 'Thời gian báo cáo:',
+            fileLabel: 'Tệp dữ liệu (CSV/JSON/XLSX):',
+            uploadAnalyze: 'Tải & Phân tích', openDatePicker: 'Chọn Ngày',
+            clearDateFilter: 'Xem Tất Cả Ngày', printBtn: 'In Báo cáo 🖨️',
+            selectedDatesAll: 'Ngày được chọn: Tất cả', language: 'Ngôn ngữ',
+            noDataMessage: 'Vui lòng tải lên file dữ liệu để hiển thị.',
+            noValidData: 'Không có dữ liệu hợp lệ.',
+            missingNamePower: 'Thiếu cột "Name" hoặc "PowerConsumption".',
+            missingColumns: 'Lỗi: Thiếu cột cần thiết.',
+            errorReadingFilePrefix: 'Lỗi khi đọc tệp:',
+            pleaseSelectFile: 'Vui lòng chọn một tệp.',
+            unsupportedFileFormat: 'Định dạng tệp không được hỗ trợ.',
+            pleaseUploadData: 'Vui lòng tải dữ liệu.',
+            noDataForSelectedDates: 'Không có dữ liệu khớp với ngày đã chọn.',
+            totalPowerTitle: 'Tổng quan Điện năng Tiêu thụ Toàn Hệ thống',
+            summaryTableTitle: 'Bảng Tổng hợp Dữ liệu Dàn nóng',
+            pieChartTitle: 'Tỷ trọng Điện năng Tiêu thụ theo Khung Giờ',
+            detailedChartTitle: 'Chi tiết Điện năng Tiêu thụ theo Dàn nóng & Khung giờ',
+            timeSeriesTitle: 'Điện năng & Nhiệt độ theo Thời gian',
+            dailyTitle: 'Điện năng & Nhiệt độ theo Ngày',
+            peakOffPeakTableTitle: 'Bảng Phân tích Điện năng theo Khung giờ',
+            indoorOperationTitle: 'Thời gian Hoạt động Dàn lạnh theo Nhiệt độ Cài đặt',
+            indoorNightTitle: 'Phân bố Thời gian Hoạt động Dàn lạnh (Ngày/Đêm)',
+            indoorNightTableTitle: 'Bảng Phân tích Hoạt động Dàn lạnh Ban đêm (22:00 - 07:00)',
+            thermostatTitle: 'Thời gian Gọi tải Dàn lạnh (Thermostat ON/OFF)',
+            excessiveCoolingTitle: 'Thời gian Hoạt động Làm mát Quá mức (< 22°C)',
+            hourlyTableTitle: 'Bảng Chi tiết Thời gian Hoạt động Dàn lạnh theo Giờ',
+            showTopLabel: 'Hiển thị Top:', showAllLabel: 'Hiển thị tất cả',
+            nightStartLabel: 'Giờ bắt đầu đêm:', nightEndLabel: 'Giờ kết thúc đêm:',
+            highlightNightBtn: 'Tô màu giờ đêm 🌙',
+            summaryHeaders: ['Tên dàn nóng','Điện năng tiêu thụ (kWh)','Số giờ hoạt động (h)','Nhiệt độ ngoài trời TB (°C)'],
+            peakTableHeaders: ['Tên dàn nóng','Giờ cao điểm (kWh)','Giờ bình thường (kWh)','Giờ thấp điểm (kWh)','Tổng cộng (kWh)'],
+            indoorNightTableHeaders: ['Tên dàn lạnh','Tổng thời gian hoạt động ban đêm (giờ)','Tỷ lệ % hoạt động đêm','Tổng thời gian hoạt động (giờ)'],
+            hourlyTableHeadersPrefix: 'Tổng cộng',
+            pieLabels: { typeLabel: 'Loại giờ', peak: 'Giờ cao điểm', normal: 'Giờ bình thường', offPeak: 'Giờ thấp điểm' },
+            chartHeaders: {
+                name: 'Tên', energyConsumption: 'Điện năng tiêu thụ (kWh)',
+                unitName: 'Tên dàn nóng', peak: 'Giờ cao điểm', normal: 'Giờ bình thường', offPeak: 'Giờ thấp điểm',
+                time: 'Thời gian', outdoorTemp: 'Nhiệt độ ngoài trời (°C)', day: 'Ngày',
+                indoorName: 'Tên dàn lạnh', nightOperation: 'Hoạt động đêm', dayOperation: 'Hoạt động ban ngày',
+                thermoOn: 'Thermostat ON', thermoOff: 'Thermostat OFF',
+                excessiveCooling: 'Thời gian hoạt động làm mát quá mức'
             },
-            en: {
-                langLabel: 'Language:',
-                toggleBtnText: 'VI',
-                reportTitle: 'VRV System Performance Analysis Report',
-                projectLabel: 'Project:',
-                reportTimeLabel: 'Report Time:',
-                fileLabel: 'Data file (CSV/JSON/XLSX):',
-                uploadAnalyze: 'Upload & Analyze',
-                openDatePicker: 'Select Dates',
-                clearDateFilter: 'Show All Dates',
-                printBtn: 'Print Report 🖨️',
-                selectedDatesAll: 'Selected dates: All',
-                language: 'Language',
-                noDataMessage: 'Please upload a data file to display.',
-                noValidData: 'No valid data available.',
-                missingNamePower: 'Missing "Name" or "PowerConsumption" column.',
-                missingColumns: 'Error: Missing required columns.',
-                errorReadingFilePrefix: 'Error reading file:',
-                pleaseSelectFile: 'Please select a file.',
-                unsupportedFileFormat: 'File format not supported.',
-                pleaseUploadData: 'Please upload data.',
-                noDataForSelectedDates: 'No data matches the selected dates.',
-                // Chart/Table titles
-                totalPowerTitle: 'System Total Power Consumption Overview',
-                summaryTableTitle: 'Outdoor Units Summary Table',
-                pieChartTitle: 'Power Consumption Share by Time Window',
-                detailedChartTitle: 'Detailed Power Consumption by Outdoor Unit & Time Window',
-                timeSeriesTitle: 'Power Consumption & Outdoor Temperature over Time',
-                dailyTitle: 'Daily Power Consumption & Outdoor Temperature',
-                peakOffPeakTableTitle: 'Power by Time Window Table',
-                indoorOperationTitle: 'Indoor Units Operation Time by Setpoint Temperature',
-                indoorNightTitle: 'Indoor Unit Operation Distribution (Day/Night)',
-                indoorNightTableTitle: 'Indoor Night Operation Table (22:00 - 07:00)',
-                thermostatTitle: 'Thermostat ON/OFF Operation Time',
-                excessiveCoolingTitle: 'Excessive Cooling Time (< 22°C)',
-                hourlyTableTitle: 'Hourly Indoor Operation Detail Table',
-                showTopLabel: 'Show Top:',
-                showAllLabel: 'Show all',
-                nightStartLabel: 'Night start hour:',
-                nightEndLabel: 'Night end hour:',
-                highlightNightBtn: 'Highlight night hours 🌙',
-                summaryHeaders: ['Outdoor Unit', 'Energy Consumption (kWh)', 'Operation hours (h)', 'Avg outdoor temp (°C)'],
-                peakTableHeaders: ['Outdoor Unit', 'Peak hours (kWh)', 'Normal hours (kWh)', 'Off-peak hours (kWh)', 'Total (kWh)'],
-                indoorNightTableHeaders: ['Indoor Unit', 'Night operation hours (h)', 'Night %', 'Total operation hours (h)'],
-                hourlyTableHeadersPrefix: 'Total',
-                pieLabels: { typeLabel: 'Time type', peak: 'Peak', normal: 'Normal', offPeak: 'Off-peak' },
-                chartHeaders: {
-                    name: 'Name',
-                    energyConsumption: 'Energy consumption (kWh)',
-                    unitName: 'Outdoor unit',
-                    peak: 'Peak',
-                    normal: 'Normal',
-                    offPeak: 'Off-peak',
-                    time: 'Time',
-                    outdoorTemp: 'Outdoor temperature (°C)',
-                    day: 'Day',
-                    indoorName: 'Indoor unit',
-                    nightOperation: 'Night operation',
-                    dayOperation: 'Day operation',
-                    thermoOn: 'Thermostat ON',
-                    thermoOff: 'Thermostat OFF',
-                    excessiveCooling: 'Excessive cooling time'
-                },
-                axis: {
-                    unitName: 'Outdoor unit',
-                    energyKwh: 'Energy consumption (kWh)',
-                    time: 'Time',
-                    outdoorTempC: 'Outdoor temperature (°C)',
-                    dayOfMonth: 'Day of month',
-                    operationHours: 'Operation time (hours)',
-                    indoorName: 'Indoor unit'
-                }
+            axis: {
+                unitName: 'Tên dàn nóng', energyKwh: 'Điện năng tiêu thụ (kWh)',
+                time: 'Thời gian', outdoorTempC: 'Nhiệt độ ngoài trời (°C)',
+                dayOfMonth: 'Ngày trong tháng', operationHours: 'Thời gian hoạt động (giờ)',
+                indoorName: 'Tên dàn lạnh'
             }
+        },
+        en: {
+            langLabel: 'Language:', toggleBtnText: 'VI',
+            reportTitle: 'VRV System Performance Analysis Report',
+            projectLabel: 'Project:', reportTimeLabel: 'Report Time:',
+            fileLabel: 'Data file (CSV/JSON/XLSX):',
+            uploadAnalyze: 'Upload & Analyze', openDatePicker: 'Select Dates',
+            clearDateFilter: 'Show All Dates', printBtn: 'Print Report 🖨️',
+            selectedDatesAll: 'Selected dates: All', language: 'Language',
+            noDataMessage: 'Please upload a data file to display.',
+            noValidData: 'No valid data available.',
+            missingNamePower: 'Missing "Name" or "PowerConsumption" column.',
+            missingColumns: 'Error: Missing required columns.',
+            errorReadingFilePrefix: 'Error reading file:',
+            pleaseSelectFile: 'Please select a file.',
+            unsupportedFileFormat: 'File format not supported.',
+            pleaseUploadData: 'Please upload data.',
+            noDataForSelectedDates: 'No data matches the selected dates.',
+            totalPowerTitle: 'System Total Power Consumption Overview',
+            summaryTableTitle: 'Outdoor Units Summary Table',
+            pieChartTitle: 'Power Consumption Share by Time Window',
+            detailedChartTitle: 'Detailed Power Consumption by Outdoor Unit & Time Window',
+            timeSeriesTitle: 'Power Consumption & Outdoor Temperature over Time',
+            dailyTitle: 'Daily Power Consumption & Outdoor Temperature',
+            peakOffPeakTableTitle: 'Power by Time Window Table',
+            indoorOperationTitle: 'Indoor Units Operation Time by Setpoint Temperature',
+            indoorNightTitle: 'Indoor Unit Operation Distribution (Day/Night)',
+            indoorNightTableTitle: 'Indoor Night Operation Table (22:00 - 07:00)',
+            thermostatTitle: 'Thermostat ON/OFF Operation Time',
+            excessiveCoolingTitle: 'Excessive Cooling Time (< 22°C)',
+            hourlyTableTitle: 'Hourly Indoor Operation Detail Table',
+            showTopLabel: 'Show Top:', showAllLabel: 'Show all',
+            nightStartLabel: 'Night start hour:', nightEndLabel: 'Night end hour:',
+            highlightNightBtn: 'Highlight night hours 🌙',
+            summaryHeaders: ['Outdoor Unit','Energy Consumption (kWh)','Operation hours (h)','Avg outdoor temp (°C)'],
+            peakTableHeaders: ['Outdoor Unit','Peak hours (kWh)','Normal hours (kWh)','Off-peak hours (kWh)','Total (kWh)'],
+            indoorNightTableHeaders: ['Indoor Unit','Night operation hours (h)','Night %','Total operation hours (h)'],
+            hourlyTableHeadersPrefix: 'Total',
+            pieLabels: { typeLabel: 'Time type', peak: 'Peak', normal: 'Normal', offPeak: 'Off-peak' },
+            chartHeaders: {
+                name: 'Name', energyConsumption: 'Energy consumption (kWh)',
+                unitName: 'Outdoor unit', peak: 'Peak', normal: 'Normal', offPeak: 'Off-peak',
+                time: 'Time', outdoorTemp: 'Outdoor temperature (°C)', day: 'Day',
+                indoorName: 'Indoor unit', nightOperation: 'Night operation', dayOperation: 'Day operation',
+                thermoOn: 'Thermostat ON', thermoOff: 'Thermostat OFF',
+                excessiveCooling: 'Excessive cooling time'
+            },
+            axis: {
+                unitName: 'Outdoor unit', energyKwh: 'Energy consumption (kWh)',
+                time: 'Time', outdoorTempC: 'Outdoor temperature (°C)',
+                dayOfMonth: 'Day of month', operationHours: 'Operation time (hours)',
+                indoorName: 'Indoor unit'
+            }
+        }
+    };
+
+    function t(key) {
+        const parts = key.split('.');
+        let value = i18n[currentLang];
+        for (const p of parts) {
+            if (value && Object.prototype.hasOwnProperty.call(value, p)) value = value[p];
+            else return key;
+        }
+        return value;
+    }
+
+    function applyLanguage(lang) {
+        currentLang = lang;
+        updateReportHeader();
+        document.getElementById('fileInputLabel').textContent = t('fileLabel');
+        document.getElementById('uploadAnalyzeBtn').textContent = t('uploadAnalyze');
+        document.getElementById('openDatePicker').textContent = t('openDatePicker');
+        document.getElementById('clearDateFilter').textContent = t('clearDateFilter');
+        document.getElementById('printBtn').textContent = t('printBtn');
+        document.getElementById('languageLabel').textContent = t('langLabel');
+        document.getElementById('toggleLangBtn').textContent = t('toggleBtnText');
+        document.getElementById('reportTitle').textContent = t('reportTitle');
+
+        const chartTitleMap = {
+            'systemPowerChartWrapper': 'totalPowerTitle',
+            'summaryTable_div_container': 'summaryTableTitle',
+            'peakOffPeakPieChart_div_container': 'pieChartTitle',
+            'detailedPowerConsumptionChart_div_container': 'detailedChartTitle',
+            'powerConsumptionTimeSeriesChart_div_container': 'timeSeriesTitle',
+            'dailyPowerConsumptionChart_div_container': 'dailyTitle',
+            'peakOffPeakTable_div_container': 'peakOffPeakTableTitle',
+            'indoorOperationTimeChart_div_container': 'indoorOperationTitle',
+            'indoorNightOperationChart_div_Chart_container': 'indoorNightTitle',
+            'indoorNightOperationTable_div_container': 'indoorNightTableTitle',
+            'indoorThermostatOnChart_div_container': 'thermostatTitle',
+            'excessiveCoolingChart_div_container': 'excessiveCoolingTitle',
+            'indoorHourlyOperationTable_div_container': 'hourlyTableTitle'
         };
-
-        function t(key) {
-            const parts = key.split('.');
-            let value = i18n[currentLang];
-            for (const p of parts) {
-                if (value && value.hasOwnProperty(p)) value = value[p];
-                else return key;
-            }
-            return value;
+        for (const [id, key] of Object.entries(chartTitleMap)) {
+            const el = document.querySelector(`#${id} .chart-title`);
+            if (el) el.textContent = t(key);
         }
 
-        function applyLanguage(lang) {
-            currentLang = lang;
-            // Update header and controls
-            document.getElementById('reportTitle').textContent = t('reportTitle');
-            // update project/report labels via updateReportHeader() which reads reportMetadata
-            updateReportHeader();
-
-            document.getElementById('fileInputLabel').textContent = t('fileLabel');
-            document.getElementById('uploadAnalyzeBtn').textContent = t('uploadAnalyze');
-            document.getElementById('openDatePicker').textContent = t('openDatePicker');
-            document.getElementById('clearDateFilter').textContent = t('clearDateFilter');
-            document.getElementById('printBtn').textContent = t('printBtn');
-            document.getElementById('languageLabel').textContent = t('langLabel');
-            document.getElementById('toggleLangBtn').textContent = t('toggleBtnText');
-
-            // Chart titles
-            document.querySelector('#systemPowerChartWrapper .chart-title').textContent = t('totalPowerTitle');
-            document.querySelector('#summaryTable_div_container .chart-title').textContent = t('summaryTableTitle');
-            document.querySelector('#peakOffPeakPieChart_div_container .chart-title').textContent = t('pieChartTitle');
-            document.querySelector('#detailedPowerConsumptionChart_div_container .chart-title').textContent = t('detailedChartTitle');
-            document.querySelector('#powerConsumptionTimeSeriesChart_div_container .chart-title').textContent = t('timeSeriesTitle');
-            document.querySelector('#dailyPowerConsumptionChart_div_container .chart-title').textContent = t('dailyTitle');
-            document.querySelector('#peakOffPeakTable_div_container .chart-title').textContent = t('peakOffPeakTableTitle');
-            document.querySelector('#indoorOperationTimeChart_div_container .chart-title').textContent = t('indoorOperationTitle');
-            document.querySelector('#indoorNightOperationChart_div_Chart_container .chart-title').textContent = t('indoorNightTitle');
-            document.querySelector('#indoorNightOperationTable_div_container .chart-title').textContent = t('indoorNightTableTitle');
-            document.querySelector('#indoorThermostatOnChart_div_container .chart-title').textContent = t('thermostatTitle');
-            document.querySelector('#excessiveCoolingChart_div_container .chart-title').textContent = t('excessiveCoolingTitle');
-            document.querySelector('#indoorHourlyOperationTable_div_container .chart-title').textContent = t('hourlyTableTitle');
-
-            // Chart-controls labels
-            document.getElementById('indoorOperationTopNLabel').textContent = t('showTopLabel');
-            // keep checkbox input, set text node:
-            document.getElementById('indoorOperationShowAllLabel').lastChild.textContent = ' ' + t('showAllLabel');
-
-            document.getElementById('indoorNightTopNLabel').textContent = t('showTopLabel');
-            document.getElementById('indoorNightShowAllLabel').lastChild.textContent = ' ' + t('showAllLabel');
-
-            document.getElementById('indoorThermostatTopNLabel').textContent = t('showTopLabel');
-            document.getElementById('indoorThermostatShowAllLabel').lastChild.textContent = ' ' + t('showAllLabel');
-
-            document.getElementById('excessiveCoolingTopNLabel').textContent = t('showTopLabel');
-            document.getElementById('excessiveCoolingShowAllLabel').lastChild.textContent = ' ' + t('showAllLabel');
-
-            document.getElementById('nightStartLabel').textContent = t('nightStartLabel');
-            document.getElementById('nightEndLabel').textContent = t('nightEndLabel');
-            document.getElementById('highlightNightBtn').textContent = t('highlightNightBtn');
-
-            // Selected dates summary
-            updateSelectedDatesSummary();
-
-            // Update common placeholders/messages
-            drawAllChartsAndTables();
-        }
-
-        // Toggle button handler
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggleBtn = document.getElementById('toggleLangBtn');
-            toggleBtn.addEventListener('click', () => {
-                const newLang = currentLang === 'vi' ? 'en' : 'vi';
-                applyLanguage(newLang);
-            });
+        const controlLabelMap = [
+            ['indoorOperationTopNLabel', 'indoorOperationShowAllLabel'],
+            ['indoorNightTopNLabel', 'indoorNightShowAllLabel'],
+            ['indoorThermostatTopNLabel', 'indoorThermostatShowAllLabel'],
+            ['excessiveCoolingTopNLabel', 'excessiveCoolingShowAllLabel']
+        ];
+        controlLabelMap.forEach(([topLabel, showAllLabel]) => {
+            const el1 = document.getElementById(topLabel);
+            const el2 = document.getElementById(showAllLabel);
+            if (el1) el1.textContent = t('showTopLabel');
+            if (el2) el2.lastChild.textContent = ' ' + t('showAllLabel');
         });
 
-        // --------------- End I18N section ---------------
+        document.getElementById('nightStartLabel').textContent = t('nightStartLabel');
+        document.getElementById('nightEndLabel').textContent = t('nightEndLabel');
+        document.getElementById('highlightNightBtn').textContent = t('highlightNightBtn');
 
-        let originalChartData = { outdoor: null, indoor: null, default: null };
-        let displayChartData = { outdoor: null, indoor: null };
-        let reportMetadata = { projectName: '', reportTime: '' };
-
-        let selectedDates = new Set();
-        let allAvailableDates = new Set();
-        let currentCalendarMonth = new Date().getMonth();
-        let currentCalendarYear = new Date().getFullYear();
-        let selectedDatesSummaryElement;
-
-        google.charts.setOnLoadCallback(initializeDisplay);
-
-        // Thay thế hàm initializeDisplay() cũ bằng hàm này
-function initializeDisplay() {
-    selectedDatesSummaryElement = document.getElementById('selectedDatesSummary');
-    updateSelectedDatesSummary();
-    resetUI();
-    
-    // Date picker events
-    document.getElementById('openDatePicker').addEventListener('click', openDatePickerModal);
-    document.getElementById('closeDatePicker').addEventListener('click', closeDatePickerModal);
-    document.getElementById('applyDateSelection').addEventListener('click', applyDateSelection);
-    document.getElementById('clearDateFilter').addEventListener('click', clearDateFilter);
-    document.getElementById('prevMonth').addEventListener('click', () => changeMonth(-1));
-    document.getElementById('nextMonth').addEventListener('click', () => changeMonth(1));
-    
-    // ✅ Setup chart controls event listeners
-    setupChartControlsEventListeners();
-
-    // Apply default language (initial)
-    applyLanguage(currentLang);
-
-    // Setup print handlers to resize & redraw charts so they don't overlap when printed
-    setupPrintRedraw();
-}
-        // Thêm vào cuối phần <script>, sau hàm initializeDisplay()
-
-function setupChartControlsEventListeners() {
-    // Indoor Operation Time Chart Controls
-    const indoorOperationTopN = document.getElementById('indoorOperationTopN');
-    const indoorOperationShowAll = document.getElementById('indoorOperationShowAll');
-    
-    indoorOperationTopN?.addEventListener('change', () => {
-        if (!indoorOperationShowAll.checked) {
-            drawIndoorOperationTimeChart();
-        }
-    });
-    
-    indoorOperationShowAll?.addEventListener('change', (e) => {
-        indoorOperationTopN.disabled = e.target.checked;
-        drawIndoorOperationTimeChart();
-    });
-
-    // Indoor Night Operation Chart Controls
-    const indoorNightTopN = document.getElementById('indoorNightTopN');
-    const indoorNightShowAll = document.getElementById('indoorNightShowAll');
-    
-    indoorNightTopN?.addEventListener('change', () => {
-        if (!indoorNightShowAll.checked) {
-            drawIndoorNightOperationChart();
-        }
-    });
-    
-    indoorNightShowAll?.addEventListener('change', (e) => {
-        indoorNightTopN.disabled = e.target.checked;
-        drawIndoorNightOperationChart();
-    });
-
-    // Indoor Thermostat Chart Controls
-    const indoorThermostatTopN = document.getElementById('indoorThermostatTopN');
-    const indoorThermostatShowAll = document.getElementById('indoorThermostatShowAll');
-    
-    indoorThermostatTopN?.addEventListener('change', () => {
-        if (!indoorThermostatShowAll.checked) {
-            drawIndoorThermostatOnChart();
-        }
-    });
-    
-    indoorThermostatShowAll?.addEventListener('change', (e) => {
-        indoorThermostatTopN.disabled = e.target.checked;
-        drawIndoorThermostatOnChart();
-    });
-
-    // Excessive Cooling Chart Controls
-    const excessiveCoolingTopN = document.getElementById('excessiveCoolingTopN');
-    const excessiveCoolingShowAll = document.getElementById('excessiveCoolingShowAll');
-    
-    excessiveCoolingTopN?.addEventListener('change', () => {
-        if (!excessiveCoolingShowAll.checked) {
-            drawExcessiveCoolingChart();
-        }
-    });
-    
-    excessiveCoolingShowAll?.addEventListener('change', (e) => {
-        excessiveCoolingTopN.disabled = e.target.checked;
-        drawExcessiveCoolingChart();
-    });
-}
-
-function limitDataToTopN(sortedData, chartType) {
-    const topNInput = document.getElementById(`${chartType}TopN`);
-    const showAllCheckbox = document.getElementById(`${chartType}ShowAll`);
-    
-    if (showAllCheckbox?.checked || !topNInput) {
-        return sortedData;
+        updateSelectedDatesSummary();
+        drawAllChartsAndTables();
     }
-    
-    const topN = parseInt(topNInput.value) || 10;
-    return sortedData.slice(0, Math.min(topN, sortedData.length));
-}
-        function parseDateTimeString(dateTimeString) { if (!dateTimeString) return null; let date; let partsColonDate = dateTimeString.match(/^(\d{1,2}):(\d{1,2}):(\d{4})\s(\d{1,2}):(\d{1,2}):(\d{1,2})$/); if (partsColonDate) { const year = parseInt(partsColonDate[3], 10); const month = parseInt(partsColonDate[2], 10) - 1; const day = parseInt(partsColonDate[1], 10); const hour = parseInt(partsColonDate[4], 10); const minute = parseInt(partsColonDate[5], 10); const second = parseInt(partsColonDate[6], 10); date = new Date(year, month, day, hour, minute, second); if (!isNaN(date.getTime())) { return date; } } let partsSlashDashDate = dateTimeString.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})\s(\d{1,2}):(\d{1,2}):(\d{1,2})$/); if (partsSlashDashDate) { const day = parseInt(partsSlashDashDate[1], 10); const month = parseInt(partsSlashDashDate[2], 10) - 1; const year = parseInt(partsSlashDashDate[3], 10); const hour = parseInt(partsSlashDashDate[4], 10); const minute = parseInt(partsSlashDashDate[5], 10); const second = parseInt(partsSlashDashDate[6], 10); date = new Date(year, month, day, hour, minute, second); if (!isNaN(date.getTime())) { return date; } } let partsIsoDate = dateTimeString.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s(\d{1,2}):(\d{1,2}):(\d{1,2})$/); if (partsIsoDate) { const year = parseInt(partsIsoDate[1], 10); const month = parseInt(partsIsoDate[2], 10) - 1; const day = parseInt(partsIsoDate[3], 10); const hour = parseInt(partsIsoDate[4], 10); const minute = parseInt(partsIsoDate[5], 10); const second = parseInt(partsIsoDate[6], 10); date = new Date(year, month, day, hour, minute, second); if (!isNaN(date.getTime())) { return date; } } date = new Date(dateTimeString); if (!isNaN(date.getTime())) { return date; } console.warn(`Could not parse date/time string: "${dateTimeString}".`); return null; }
-        function formatDateToYYYYMMDD(date) { const year = date.getFullYear(); const month = String(date.getMonth() + 1).padStart(2, '0'); const day = String(date.getDate()).padStart(2, '0'); return `${year}-${month}-${day}`; }
-        function getColumnIndices(headers) { const lowerCaseTrimmedHeaders = headers.map(h => h.toLowerCase().trim()); const columnMappings = { date: ['date', 'time'], name: ['name', 'odu name'], powerconsumption: ['powerconsumption', 'total power consumption (kwh)', 'total power consumption kwh'], outdooroperatingtime: ['outdooroperatingtime', 'outdoor operating time'], outdoortemp_ave: ['outdoortemp_ave', 'outdoor temp ave', 'outdoor air temperature (°c)', 'outdoor air temperature c'], indoor_name: ['indoor name', 'idu name', 'name'], setpoint_temperature: ['setpoint temperature', 'setpointtemp', 'setpoint_temp', 'setpoint_ave', 'setpoint_avg'], operation_time: ['operation time', 'operationtime', 'hourlyintegratedoperatingtime', 'hourly_operating_time'], indoor_thermo_on_time: ['indoor_integratedthermoontime', 'indoor_thermo_on_time'] }; const indices = {}; for (const internalName in columnMappings) { const possibleVariations = columnMappings[internalName]; for (const variation of possibleVariations) { const index = lowerCaseTrimmedHeaders.indexOf(variation); if (index !== -1) { indices[internalName] = index; break; } } } return indices; }
-        function clearAllDisplays() { const message = t('noDataMessage'); document.getElementById('systemPowerChartActual').innerHTML = message; document.getElementById('summaryTable_div').innerHTML = message; document.getElementById('peakOffPeakPieChart_div').innerHTML = message; document.getElementById('detailedPowerConsumptionChart_div').innerHTML = message; document.getElementById('powerConsumptionTimeSeriesChart_div').innerHTML = message; document.getElementById('dailyPowerConsumptionChart_div').innerHTML = message; document.getElementById('peakOffPeakTable_div').innerHTML = message; document.getElementById('indoorOperationTimeChart_div').innerHTML = message; document.getElementById('indoorNightOperationChart_div_Chart').innerHTML = message; document.getElementById('indoorNightOperationTable_div').innerHTML = message; document.getElementById('indoorHourlyOperationTable_div').innerHTML = message; document.getElementById('indoorThermostatOnChart_div').innerHTML = message; document.getElementById('excessiveCoolingChart_div').innerHTML = message; }
-        function resetUI() { clearAllDisplays(); updateReportHeader(); }
-        
-        function updateReportHeader() {
-            if (reportMetadata && reportMetadata.projectName && reportMetadata.reportTime) {
-                document.getElementById('reportProjectName').textContent = `${t('projectLabel')} ${reportMetadata.projectName}`;
-                document.getElementById('reportDate').textContent = `${t('reportTimeLabel')} ${reportMetadata.reportTime}`;
-            } else {
-                 document.getElementById('reportProjectName').textContent = `${t('projectLabel')} ${ (currentLang==='vi' ? 'Chưa tải dữ liệu' : 'Not loaded') }`;
-                document.getElementById('reportDate').textContent = `${t('reportTimeLabel')} ${ (currentLang==='vi' ? 'Chưa tải dữ liệu' : 'Not loaded') }`;
+
+    // ─── State ───────────────────────────────────────────────────────────────
+    let originalChartData  = { outdoor: null, indoor: null, default: null };
+    let displayChartData   = { outdoor: null, indoor: null, default: null };
+    let reportMetadata     = { projectName: '', reportTime: '' };
+    let selectedDates      = new Set();
+    let allAvailableDates  = new Set();
+    let currentCalendarMonth = new Date().getMonth();
+    let currentCalendarYear  = new Date().getFullYear();
+    let selectedDatesSummaryElement;
+
+    google.charts.setOnLoadCallback(initializeDisplay);
+
+    // ─── Init ────────────────────────────────────────────────────────────────
+    function initializeDisplay() {
+        selectedDatesSummaryElement = document.getElementById('selectedDatesSummary');
+        updateSelectedDatesSummary();
+        resetUI();
+        setupChartControlsEventListeners();
+        applyLanguage(currentLang);
+        setupPrintRedraw();
+
+        document.getElementById('openDatePicker').addEventListener('click', openDatePickerModal);
+        document.getElementById('closeDatePicker').addEventListener('click', closeDatePickerModal);
+        document.getElementById('applyDateSelection').addEventListener('click', applyDateSelection);
+        document.getElementById('clearDateFilter').addEventListener('click', clearDateFilter);
+        document.getElementById('prevMonth').addEventListener('click', () => changeMonth(-1));
+        document.getElementById('nextMonth').addEventListener('click', () => changeMonth(1));
+
+        document.getElementById('toggleLangBtn').addEventListener('click', () => {
+            applyLanguage(currentLang === 'vi' ? 'en' : 'vi');
+        });
+
+        // FIX: print button — single event listener, no inline onclick
+        document.getElementById('printBtn').addEventListener('click', () => {
+            window.print();
+        });
+    }
+
+    function setupChartControlsEventListeners() {
+        const configs = [
+            { topN: 'indoorOperationTopN', showAll: 'indoorOperationShowAll', draw: drawIndoorOperationTimeChart },
+            { topN: 'indoorNightTopN',     showAll: 'indoorNightShowAll',     draw: drawIndoorNightOperationChart },
+            { topN: 'indoorThermostatTopN',showAll: 'indoorThermostatShowAll',draw: drawIndoorThermostatOnChart },
+            { topN: 'excessiveCoolingTopN',showAll: 'excessiveCoolingShowAll',draw: drawExcessiveCoolingChart }
+        ];
+        configs.forEach(({ topN, showAll, draw }) => {
+            const topNEl   = document.getElementById(topN);
+            const showAllEl = document.getElementById(showAll);
+            topNEl?.addEventListener('change', () => { if (!showAllEl.checked) draw(); });
+            showAllEl?.addEventListener('change', (e) => { topNEl.disabled = e.target.checked; draw(); });
+        });
+    }
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    // FIX: extracted shared peak-category logic — single source of truth
+    function getPeakCategory(dateObj) {
+        const hour = dateObj.getHours();
+        const minute = dateObj.getMinutes();
+        const dow = dateObj.getDay();
+        if (hour >= 22 || hour < 4) return 'offPeak';
+        if (dow === 0) return (hour >= 4 && hour < 22) ? 'normal' : 'offPeak';
+        // Mon–Sat
+        if ((hour === 9 && minute >= 30) || (hour >= 10 && hour < 11) ||
+            (hour === 11 && minute < 30) || (hour >= 17 && hour < 20)) return 'peak';
+        return 'normal';
+    }
+
+    function limitDataToTopN(sortedData, chartType) {
+        const topNInput    = document.getElementById(`${chartType}TopN`);
+        const showAllCheck = document.getElementById(`${chartType}ShowAll`);
+        if (showAllCheck?.checked || !topNInput) return sortedData;
+        const topN = parseInt(topNInput.value) || 10;
+        return sortedData.slice(0, Math.min(topN, sortedData.length));
+    }
+
+    function parseDateTimeString(str) {
+        if (!str) return null;
+        // dd:mm:yyyy HH:MM:SS
+        let m = str.match(/^(\d{1,2}):(\d{1,2}):(\d{4})\s(\d{1,2}):(\d{1,2}):(\d{1,2})$/);
+        if (m) { const d = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +m[6]); if (!isNaN(d)) return d; }
+        // dd/mm/yyyy or dd-mm-yyyy HH:MM:SS
+        m = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s(\d{1,2}):(\d{1,2}):(\d{1,2})$/);
+        if (m) { const d = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +m[6]); if (!isNaN(d)) return d; }
+        // yyyy-mm-dd HH:MM:SS
+        m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s(\d{1,2}):(\d{1,2}):(\d{1,2})$/);
+        if (m) { const d = new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]); if (!isNaN(d)) return d; }
+        // fallback
+        const d = new Date(str);
+        if (!isNaN(d)) return d;
+        console.warn(`Could not parse date/time: "${str}"`);
+        return null;
+    }
+
+    // FIX: always use local-time methods for consistency with calendar
+    function formatDateToYYYYMMDD(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    function getColumnIndices(headers) {
+        const lower = headers.map(h => (h || '').toString().toLowerCase().trim());
+        const mappings = {
+            date:                 ['date','time'],
+            name:                 ['name','odu name'],
+            powerconsumption:     ['powerconsumption','total power consumption (kwh)','total power consumption kwh'],
+            outdooroperatingtime: ['outdooroperatingtime','outdoor operating time'],
+            outdoortemp_ave:      ['outdoortemp_ave','outdoor temp ave','outdoor air temperature (°c)','outdoor air temperature c'],
+            indoor_name:          ['indoor name','idu name','name'],
+            setpoint_temperature: ['setpoint temperature','setpointtemp','setpoint_temp','setpoint_ave','setpoint_avg'],
+            operation_time:       ['operation time','operationtime','hourlyintegratedoperatingtime','hourly_operating_time'],
+            indoor_thermo_on_time:['indoor_integratedthermoontime','indoor_thermo_on_time'],
+            // FIX: added 'hourlycooloperatingtime' and 'setpoint_ave' so drawExcessiveCoolingChart uses this too
+            excessive_cooling_time:['hourlycooloperatingtime','hourlycooloperatingtime']
+        };
+        const indices = {};
+        for (const [key, variants] of Object.entries(mappings)) {
+            for (const v of variants) {
+                const idx = lower.indexOf(v);
+                if (idx !== -1) { indices[key] = idx; break; }
             }
         }
-
-function renderChart(chartConstructor, containerId, data, chartTitle, extraOptions = {}) {
-    if (!data || data.length < 2) {
-        document.getElementById(containerId).innerHTML = t('noValidData');
-        return;
+        return indices;
     }
 
-    const dataTable = google.visualization.arrayToDataTable(data);
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
 
-    const baseOptions = {
+    function renderDataTable(container, headers, rows, extraClass = '') {
+        const className = ['data-table', extraClass].filter(Boolean).join(' ');
+        let html = `<table class="${className}"><thead><tr>`;
+        html += headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+        html += '</tr></thead><tbody>';
+        rows.forEach(row => {
+            html += '<tr>' + row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('') + '</tr>';
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function getIndoorNightOperationRows(data, ci) {
+        const total = new Map();
+        const night = new Map();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            const name = row[ci.indoor_name];
+            const opT = Number(row[ci.operation_time]);
+            const d = parseDateTimeString(row[ci.date]);
+            if (!name || !d || isNaN(opT)) continue;
+            const hrs = opT / 60;
+            total.set(name, (total.get(name) || 0) + hrs);
+            if (d.getHours() >= 22 || d.getHours() < 7) {
+                night.set(name, (night.get(name) || 0) + hrs);
+            }
+        }
+        return Array.from(total.keys()).map(name => ({
+            name,
+            totalTime: total.get(name) || 0,
+            nightTime: night.get(name) || 0
+        }));
+    }
+
+    // ─── Base chart renderer ─────────────────────────────────────────────────
+    const BASE_CHART_OPTIONS = {
         fontName: 'Segoe UI',
         backgroundColor: 'transparent',
-        chartArea: { left: '10%', top: '15%', bottom: 120, width: '85%', height: '65%' }, // tăng chỗ cho nhãn
+        chartArea: { left: '10%', top: '15%', bottom: 120, width: '85%', height: '65%' },
         legend: { position: 'top', alignment: 'end', textStyle: { color: '#57606f', fontSize: 12 } },
-        hAxis: { 
-            textStyle: { color: '#57606f', fontSize: 11 }, 
-            titleTextStyle: { color: '#2F3542', fontSize: 13, italic: false }, 
+        hAxis: {
+            textStyle: { color: '#57606f', fontSize: 11 },
+            titleTextStyle: { color: '#2F3542', fontSize: 13, italic: false },
             gridlines: { color: 'transparent' },
-            slantedText: true,         // luôn hiển thị chữ nghiêng
-            slantedTextAngle: 30,      // góc nghiêng
-            showTextEvery: 1,          // hiển thị tất cả nhãn
-            maxAlternation: 1          // không ẩn bớt
+            slantedText: true, slantedTextAngle: 30, showTextEvery: 1, maxAlternation: 1
         },
-        vAxis: { 
-            textStyle: { color: '#57606f', fontSize: 11 }, 
-            titleTextStyle: { color: '#2F3542', fontSize: 13, italic: false }, 
-            gridlines: { color: '#dfe4ea', count: 5 }, 
-            minorGridlines: { count: 0 }, 
-            viewWindow: { min: 0 } 
+        vAxis: {
+            textStyle: { color: '#57606f', fontSize: 11 },
+            titleTextStyle: { color: '#2F3542', fontSize: 13, italic: false },
+            gridlines: { color: '#dfe4ea', count: 5 },
+            minorGridlines: { count: 0 },
+            viewWindow: { min: 0 }
         },
         tooltip: { textStyle: { fontSize: 12 }, trigger: 'focus' },
         animation: { duration: 800, easing: 'out', startup: true },
-        colors: ['#3498DB', '#2ECC71', '#E67E22', '#9B59B6', '#1ABC9C', '#F1C40F']
+        colors: ['#3498DB','#2ECC71','#E67E22','#9B59B6','#1ABC9C','#F1C40F']
     };
 
-    const finalOptions = { ...baseOptions, ...extraOptions, title: '' };
-    
-    const chart = new chartConstructor(document.getElementById(containerId));
-    chart.draw(dataTable, finalOptions);
-}
-
-/* Keep single, robust highlightNightHours implementation (no duplicates) */
-function highlightNightHours(start = 22, end = 5) {
-    const startVal = parseInt(document.getElementById('nightStart')?.value ?? start, 10);
-    const endVal = parseInt(document.getElementById('nightEnd')?.value ?? end, 10);
-    let nightHours = [];
-    const s = isNaN(startVal) ? start : startVal;
-    const e = isNaN(endVal) ? end : endVal;
-
-    if (s <= e) {
-        for (let h = s; h <= e; h++) nightHours.push(h);
-    } else {
-        for (let h = s; h <= 23; h++) nightHours.push(h);
-        for (let h = 0; h <= e; h++) nightHours.push(h);
+    function renderChart(ChartClass, containerId, data, _unused, extraOptions = {}) {
+        if (!data || data.length < 2) {
+            document.getElementById(containerId).innerHTML = t('noValidData');
+            return;
+        }
+        const dataTable = google.visualization.arrayToDataTable(data);
+        const options = Object.assign({}, BASE_CHART_OPTIONS, extraOptions, { title: '' });
+        new ChartClass(document.getElementById(containerId)).draw(dataTable, options);
     }
 
-    // remove previous highlights
-    document.querySelectorAll('.hourly-table td, .hourly-table th').forEach(cell => cell.classList.remove('night-hour'));
-
-    const table = document.querySelector('.hourly-table');
-    if (!table) return;
-
-    nightHours.forEach(h => {
-        const colIndex = h + 1; // 0th column is name, nth-child starts at 1
-        table.querySelectorAll(`tr td:nth-child(${colIndex+1}), tr th:nth-child(${colIndex+1})`)
-             .forEach(cell => cell.classList.add('night-hour'));
-    });
-}
-
-        function drawAggregatedPowerConsumptionChart() {
-            const chartActualContainer = document.getElementById('systemPowerChartActual');
-            const dataToUse = displayChartData.outdoor || displayChartData.default;
-            if (!dataToUse || dataToUse.length < 2) { chartActualContainer.innerHTML = t('noValidData'); return; }
-            const headers = dataToUse[0];
-            const colIndices = getColumnIndices(headers);
-            const nameColIndex = colIndices.name;
-            const powerConsumptionColIndex = colIndices.powerconsumption;
-            if (nameColIndex === undefined || powerConsumptionColIndex === undefined) { chartActualContainer.innerHTML = t('missingNamePower'); return; }
-            const aggregatedDataMap = new Map();
-            for (let i = 1; i < dataToUse.length; i++) {
-                const row = dataToUse[i];
-                const name = row[nameColIndex];
-                const powerConsumption = Number(row[powerConsumptionColIndex]);
-                if (name && !isNaN(powerConsumption)) { aggregatedDataMap.set(name, (aggregatedDataMap.get(name) || 0) + powerConsumption); }
-            }
-            const chartData = [[ t('chartHeaders.name'), t('chartHeaders.energyConsumption') ]];
-            const sortedAggregatedData = Array.from(aggregatedDataMap.entries()).sort((a, b) => b[1] - a[1]);
-            sortedAggregatedData.forEach(([key, value]) => { chartData.push([key, value]); });
-            if (chartData.length < 2) { chartActualContainer.innerHTML = t('noValidData'); return; }
-            renderChart(google.visualization.ColumnChart, 'systemPowerChartActual', chartData, '', { legend: { position: 'none' }, colors: ['#3498DB'], hAxis: { title: t('axis.unitName') }, vAxis: { title: t('axis.energyKwh') } });
-        }
-        
-        function drawSummaryTable() {
-            const summaryTableContainer = document.getElementById('summaryTable_div');
-            const dataToUse = displayChartData.outdoor || displayChartData.default;
-            if (!dataToUse || dataToUse.length < 2) { summaryTableContainer.innerHTML = t('noValidData'); return; }
-            const headers = dataToUse[0];
-            const colIndices = getColumnIndices(headers);
-            const nameColIndex = colIndices.name;
-            const powerConsumptionColIndex = colIndices.powerconsumption;
-            const outdoorOperatingTimeColIndex = colIndices.outdooroperatingtime;
-            const outdoorTempAveColIndex = colIndices.outdoortemp_ave;
-            if (nameColIndex === undefined || powerConsumptionColIndex === undefined || outdoorOperatingTimeColIndex === undefined || outdoorTempAveColIndex === undefined) { summaryTableContainer.innerHTML = t('missingColumns'); return; }
-            const aggregatedData = new Map();
-            for (let i = 1; i < dataToUse.length; i++) {
-                const row = dataToUse[i];
-                const name = row[nameColIndex];
-                const powerConsumption = Number(row[powerConsumptionColIndex]);
-                let operatingTime = Number(row[outdoorOperatingTimeColIndex]);
-                const outdoorTemp = Number(row[outdoorTempAveColIndex]);
-                if (!isNaN(operatingTime)) { operatingTime = operatingTime / 60; }
-                if (name && !isNaN(powerConsumption) && !isNaN(operatingTime) && !isNaN(outdoorTemp)) {
-                    if (!aggregatedData.has(name)) { aggregatedData.set(name, { powerSum: 0, timeSum: 0, tempSum: 0, tempCount: 0 }); }
-                    const dataEntry = aggregatedData.get(name);
-                    dataEntry.powerSum += powerConsumption;
-                    dataEntry.timeSum += operatingTime;
-                    dataEntry.tempSum += outdoorTemp;
-                    dataEntry.tempCount += 1;
-                }
-            }
-            if (aggregatedData.size === 0) { summaryTableContainer.innerHTML = t('noValidData'); return; }
-            let tableHtml = `<table class="data-table"><thead><tr>`;
-            const headersToUse = t('summaryHeaders');
-            headersToUse.forEach(h => tableHtml += `<th>${h}</th>`);
-            tableHtml += `</tr></thead><tbody>`;
-            Array.from(aggregatedData.entries()).forEach(([name, data]) => {
-                const avgTemp = data.tempCount > 0 ? (data.tempSum / data.tempCount).toFixed(2) : 'N/A';
-                tableHtml += `<tr><td>${name}</td><td>${data.powerSum.toFixed(2)}</td><td>${data.timeSum.toFixed(2)}</td><td>${avgTemp}</td></tr>`;
-            });
-            tableHtml += `</tbody></table>`;
-            summaryTableContainer.innerHTML = tableHtml;
-        }
-        function drawPeakOffPeakPieChart() {
-            const pieChartContainer = document.getElementById('peakOffPeakPieChart_div');
-            const dataToUse = displayChartData.outdoor || displayChartData.default;
-            if (!dataToUse || dataToUse.length < 2) { pieChartContainer.innerHTML = t('noValidData'); return; }
-            const headers = dataToUse[0];
-            const colIndices = getColumnIndices(headers);
-            const dateColIndex = colIndices.date;
-            const powerConsumptionColIndex = colIndices.powerconsumption;
-            if (dateColIndex === undefined || powerConsumptionColIndex === undefined) { pieChartContainer.innerHTML = t('missingColumns'); return; }
-            let totalPeakPower = 0, totalNormalPower = 0, totalOffPeakPower = 0;
-            for (let i = 1; i < dataToUse.length; i++) {
-                const row = dataToUse[i];
-                const dateString = row[dateColIndex];
-                const powerConsumption = Number(row[powerConsumptionColIndex]);
-                if (!isNaN(powerConsumption)) {
-                    const dateObj = parseDateTimeString(dateString);
-                    if (dateObj) {
-                        const dayOfWeek = dateObj.getDay(); const hour = dateObj.getHours(); const minute = dateObj.getMinutes();
-                        let category = 'normal';
-                        if (hour >= 22 || hour < 4) { category = 'offPeak'; }
-                        else if (dayOfWeek >= 1 && dayOfWeek <= 6) {
-                            if ((hour === 9 && minute >= 30) || (hour >= 10 && hour < 11) || (hour === 11 && minute < 30) || (hour >= 17 && hour < 20)) { category = 'peak'; } else { category = 'normal'; }
-                        } else if (dayOfWeek === 0) {
-                            if (hour >= 4 && hour < 22) { category = 'normal'; } else { category = 'offPeak'; }
-                        }
-                        if (category === 'peak') { totalPeakPower += powerConsumption; } else if (category === 'normal') { totalNormalPower += powerConsumption; } else if (category === 'offPeak') { totalOffPeakPower += powerConsumption; }
-                    }
-                }
-            }
-            const pieData = [[t('pieLabels.typeLabel'), t('chartHeaders.energyConsumption')]];
-            if (totalPeakPower > 0) pieData.push([t('pieLabels.peak'), totalPeakPower]);
-            if (totalNormalPower > 0) pieData.push([t('pieLabels.normal'), totalNormalPower]);
-            if (totalOffPeakPower > 0) pieData.push([t('pieLabels.offPeak'), totalOffPeakPower]);
-            if (pieData.length < 2) { pieChartContainer.innerHTML = t('noValidData'); return; }
-            renderChart(google.visualization.PieChart, 'peakOffPeakPieChart_div', pieData, '', { pieHole: 0.4, colors: ['#E74C3C', '#3498DB', '#2ECC71'], legend: { position: 'right', textStyle: { fontSize: 13 } } });
-        }
-
-        function drawDetailedPowerConsumptionChart() {
-            const detailedChartContainer = document.getElementById('detailedPowerConsumptionChart_div');
-            const dataToUse = displayChartData.outdoor || displayChartData.default;
-            if (!dataToUse || dataToUse.length < 2) { detailedChartContainer.innerHTML = t('noValidData'); return; }
-            const headers = dataToUse[0];
-            const colIndices = getColumnIndices(headers);
-            const dateColIndex = colIndices.date; const nameColIndex = colIndices.name; const powerConsumptionColIndex = colIndices.powerconsumption;
-            if (dateColIndex === undefined || nameColIndex === undefined || powerConsumptionColIndex === undefined) { detailedChartContainer.innerHTML = t('missingColumns'); return; }
-            const aggregatedPowerDetailed = new Map();
-            for (let i = 1; i < dataToUse.length; i++) {
-                const row = dataToUse[i];
-                const dateString = row[dateColIndex]; const name = row[nameColIndex]; const powerConsumption = Number(row[powerConsumptionColIndex]);
-                if (name && !isNaN(powerConsumption)) {
-                    const dateObj = parseDateTimeString(dateString);
-                    if (dateObj) {
-                        const dayOfWeek = dateObj.getDay(); const hour = dateObj.getHours(); const minute = dateObj.getMinutes();
-                        let category = 'normal';
-                        if (hour >= 22 || hour < 4) { category = 'offPeak'; }
-                        else if (dayOfWeek >= 1 && dayOfWeek <= 6) { if ((hour === 9 && minute >= 30) || (hour >= 10 && hour < 11) || (hour === 11 && minute < 30) || (hour >= 17 && hour < 20)) { category = 'peak'; } else { category = 'normal'; } }
-                        else if (dayOfWeek === 0) { if (hour >= 4 && hour < 22) { category = 'normal'; } else { category = 'offPeak'; } }
-                        if (!aggregatedPowerDetailed.has(name)) { aggregatedPowerDetailed.set(name, { peak: 0, normal: 0, offPeak: 0, total: 0 }); }
-                        const dataEntry = aggregatedPowerDetailed.get(name);
-                        dataEntry[category] += powerConsumption; dataEntry.total += powerConsumption;
-                    }
-                }
-            }
-            const sortedAggregatedData = Array.from(aggregatedPowerDetailed.entries()).map(([name, data]) => ({ name, ...data })).sort((a, b) => b.total - a.total);
-            const chartData = [[ t('chartHeaders.unitName'), t('chartHeaders.peak'), t('chartHeaders.normal'), t('chartHeaders.offPeak') ]];
-            sortedAggregatedData.forEach(item => { chartData.push([item.name, item.peak, item.normal, item.offPeak]); });
-            if (chartData.length < 2) { detailedChartContainer.innerHTML = t('noValidData'); return; }
-            renderChart(google.visualization.ColumnChart, 'detailedPowerConsumptionChart_div', chartData, '', { isStacked: true, colors: ['#E74C3C', '#3498DB', '#2ECC71'], hAxis: { title: t('axis.unitName'), slantedText: true, slantedTextAngle: 30 }, vAxis: { title: t('axis.energyKwh') } });
-        }
-
-        function drawPowerConsumptionTimeSeriesChart() {
-            const timeSeriesChartContainer = document.getElementById('powerConsumptionTimeSeriesChart_div');
-            const dataToUse = displayChartData.outdoor || displayChartData.default;
-            if (!dataToUse || dataToUse.length < 2) { timeSeriesChartContainer.innerHTML = t('noValidData'); return; }
-            const headers = dataToUse[0];
-            const colIndices = getColumnIndices(headers);
-            const dateColIndex = colIndices.date; const nameColIndex = colIndices.name; const powerConsumptionColIndex = colIndices.powerconsumption; const outdoorTempAveColIndex = colIndices.outdoortemp_ave;
-            if (dateColIndex === undefined || nameColIndex === undefined || powerConsumptionColIndex === undefined || outdoorTempAveColIndex === undefined) { timeSeriesChartContainer.innerHTML = t('missingColumns'); return; }
-            const timeSeriesAggregation = new Map(); const uniqueOduNames = new Set();
-            for (let i = 1; i < dataToUse.length; i++) {
-                const row = dataToUse[i];
-                const dateString = row[dateColIndex]; const name = row[nameColIndex]; const powerConsumption = Number(row[powerConsumptionColIndex]); const outdoorTemp = Number(row[outdoorTempAveColIndex]);
-                const dateObj = parseDateTimeString(dateString);
-                if (!dateObj || isNaN(powerConsumption) || isNaN(outdoorTemp) || !name) { continue; }
-                const timestampKey = dateObj.getTime();
-                if (!timeSeriesAggregation.has(timestampKey)) { timeSeriesAggregation.set(timestampKey, { _date: dateObj, _OutdoorTempSum: 0, _tempCount: 0 }); }
-                const entry = timeSeriesAggregation.get(timestampKey);
-                entry[name] = (entry[name] || 0) + powerConsumption; entry._OutdoorTempSum += outdoorTemp; entry._tempCount += 1; uniqueOduNames.add(name);
-            }
-            const sortedEntries = Array.from(timeSeriesAggregation.values()).sort((a, b) => a._date.getTime() - b._date.getTime());
-            if (sortedEntries.length === 0) { timeSeriesChartContainer.innerHTML = t('noValidData'); return; }
-            const sortedOduNames = Array.from(uniqueOduNames).sort();
-            const chartDataHeader = [ t('chartHeaders.time'), ...sortedOduNames, t('chartHeaders.outdoorTemp') ];
-            const chartData = [chartDataHeader];
-            sortedEntries.forEach(entry => {
-                const row = [entry._date];
-                sortedOduNames.forEach(oduName => { row.push(entry[oduName] || 0); });
-                row.push(entry._OutdoorTempSum / entry._tempCount);
-                chartData.push(row);
-            });
-            const seriesOptions = {};
-            for (let i = 0; i < sortedOduNames.length; i++) { seriesOptions[i] = { type: 'bars' }; }
-            seriesOptions[sortedOduNames.length] = { type: 'line', targetAxisIndex: 1, color: '#E74C3C' };
-            renderChart(google.visualization.ComboChart, 'powerConsumptionTimeSeriesChart_div', chartData, '', { isStacked: true, seriesType: 'bars', series: seriesOptions, vAxes: { 0: { title: t('axis.energyKwh') }, 1: { title: t('axis.outdoorTempC') } }, hAxis: { title: t('axis.time'), format: 'MMM d, H:mm' } });
-        }
-
-        function drawDailyPowerConsumptionChart() {
-            const chartContainer = document.getElementById('dailyPowerConsumptionChart_div');
-            const dataToUse = displayChartData.outdoor || displayChartData.default;
-            if (!dataToUse || dataToUse.length < 2) { chartContainer.innerHTML = t('noValidData'); return; }
-            const headers = dataToUse[0];
-            const colIndices = getColumnIndices(headers);
-            const dateColIndex = colIndices.date; const nameColIndex = colIndices.name; const powerConsumptionColIndex = colIndices.powerconsumption; const outdoorTempAveColIndex = colIndices.outdoortemp_ave;
-            if (dateColIndex === undefined || nameColIndex === undefined || powerConsumptionColIndex === undefined || outdoorTempAveColIndex === undefined) { chartContainer.innerHTML = t('missingColumns'); return; }
-            const dailyAggregatedData = new Map(); const uniqueUnitNames = new Set(); const uniqueDates = new Set();
-            for (let i = 1; i < dataToUse.length; i++) {
-                const row = dataToUse[i];
-                const dateString = row[dateColIndex]; const unitName = row[nameColIndex]; const powerConsumption = Number(row[powerConsumptionColIndex]); const outdoorTemp = Number(row[outdoorTempAveColIndex]);
-                const dateObj = parseDateTimeString(dateString);
-                if (dateObj && !isNaN(powerConsumption) && unitName && !isNaN(outdoorTemp)) {
-                    const formattedDate = formatDateToYYYYMMDD(dateObj);
-                    uniqueDates.add(formattedDate); uniqueUnitNames.add(unitName);
-                    if (!dailyAggregatedData.has(formattedDate)) { dailyAggregatedData.set(formattedDate, { units: new Map(), _OutdoorTempSum: 0, _tempCount: 0 }); }
-                    const dayData = dailyAggregatedData.get(formattedDate);
-                    dayData.units.set(unitName, (dayData.units.get(unitName) || 0) + powerConsumption);
-                    dayData._OutdoorTempSum += outdoorTemp; dayData._tempCount += 1;
-                }
-            }
-            if (dailyAggregatedData.size === 0) { chartContainer.innerHTML = t('noValidData'); return; }
-            const sortedUnitNames = Array.from(uniqueUnitNames).sort();
-            const sortedDates = Array.from(uniqueDates).sort();
-            const chartDataHeader = [ t('chartHeaders.day'), ...sortedUnitNames, t('chartHeaders.outdoorTemp') ];
-            const chartData = [chartDataHeader];
-            sortedDates.forEach(dateStr => {
-                const day = new Date(dateStr).getUTCDate();
-                const row = [ (currentLang === 'vi') ? `Ngày ${day}` : `Day ${day}` ];
-                const dayData = dailyAggregatedData.get(dateStr);
-                const unitPowerMap = dayData.units;
-                sortedUnitNames.forEach(unitName => { row.push(unitPowerMap.get(unitName) || 0); });
-                row.push(dayData._OutdoorTempSum / dayData._tempCount);
-                chartData.push(row);
-            });
-            const seriesOptions = {};
-            for (let i = 0; i < sortedUnitNames.length; i++) { seriesOptions[i] = { type: 'bars', targetAxisIndex: 0 }; }
-            seriesOptions[sortedUnitNames.length] = { type: 'line', targetAxisIndex: 1, color: '#E74C3C', lineWidth: 3, pointSize: 5 };
-            renderChart(google.visualization.ComboChart, 'dailyPowerConsumptionChart_div', chartData, '', { isStacked: true, seriesType: 'bars', series: seriesOptions, vAxes: { 0: { title: t('axis.energyKwh') }, 1: { title: t('axis.outdoorTempC') } }, hAxis: { title: t('axis.dayOfMonth') } });
-        }
-
-        function drawPeakOffPeakNormalTable() {
-            const container = document.getElementById('peakOffPeakTable_div');
-            const dataToUse = displayChartData.outdoor || displayChartData.default;
-            if (!dataToUse || dataToUse.length < 2) { container.innerHTML = t('noValidData'); return; }
-            const headers = dataToUse[0];
-            const colIndices = getColumnIndices(headers);
-            const dateColIndex = colIndices.date; const nameColIndex = colIndices.name; const powerConsumptionColIndex = colIndices.powerconsumption;
-            if (dateColIndex === undefined || nameColIndex === undefined || powerConsumptionColIndex === undefined) { container.innerHTML = t('missingColumns'); return; }
-            const aggregatedPowerByTime = new Map();
-            for (let i = 1; i < dataToUse.length; i++) {
-                const row = dataToUse[i];
-                const dateString = row[dateColIndex]; const name = row[nameColIndex]; const powerConsumption = Number(row[powerConsumptionColIndex]);
-                if (name && !isNaN(powerConsumption)) {
-                    const dateObj = parseDateTimeString(dateString);
-                    if (dateObj) {
-                        const dayOfWeek = dateObj.getDay(); const hour = dateObj.getHours(); const minute = dateObj.getMinutes();
-                        let category = 'normal';
-                        if (hour >= 22 || hour < 4) { category = 'offPeak'; }
-                        else if (dayOfWeek >= 1 && dayOfWeek <= 6) { if ((hour === 9 && minute >= 30) || (hour >= 10 && hour < 11) || (hour === 11 && minute < 30) || (hour >= 17 && hour < 20)) { category = 'peak'; } else { category = 'normal'; } }
-                        else if (dayOfWeek === 0) { if (hour >= 4 && hour < 22) { category = 'normal'; } else { category = 'offPeak'; } }
-                        if (!aggregatedPowerByTime.has(name)) { aggregatedPowerByTime.set(name, { peak: 0, normal: 0, offPeak: 0 }); }
-                        aggregatedPowerByTime.get(name)[category] += powerConsumption;
-                    }
-                }
-            }
-            if (aggregatedPowerByTime.size === 0) { container.innerHTML = t('noValidData'); return; }
-            let tableHtml = `<table class="data-table"><thead><tr>`;
-            const headersToUse = t('peakTableHeaders');
-            headersToUse.forEach(h => tableHtml += `<th>${h}</th>`);
-            tableHtml += `</tr></thead><tbody>`;
-            Array.from(aggregatedPowerByTime.entries()).forEach(([name, data]) => {
-                const totalPower = data.peak + data.normal + data.offPeak;
-                tableHtml += `<tr><td>${name}</td><td>${data.peak.toFixed(2)}</td><td>${data.normal.toFixed(2)}</td><td>${data.offPeak.toFixed(2)}</td><td>${totalPower.toFixed(2)}</td></tr>`;
-            });
-            tableHtml += `</tbody></table>`;
-            container.innerHTML = tableHtml;
-        }
-
-        // Thay thế hàm drawIndoorOperationTimeChart() cũ bằng hàm này
-function drawIndoorOperationTimeChart() {
-    const container = document.getElementById('indoorOperationTimeChart_div');
-    const dataToUse = displayChartData.indoor;
-    if (!dataToUse || dataToUse.length < 2) { 
-        container.innerHTML = t('noValidData'); 
-        return; 
-    }
-    
-    const headers = dataToUse[0];
-    const colIndices = getColumnIndices(headers);
-    const indoorNameColIndex = colIndices.indoor_name; 
-    const setpointTempColIndex = colIndices.setpoint_temperature; 
-    const operationTimeColIndex = colIndices.operation_time;
-    
-    if (indoorNameColIndex === undefined || setpointTempColIndex === undefined || operationTimeColIndex === undefined) { 
-        container.innerHTML = t('missingColumns'); 
-        return; 
-    }
-    
-    const aggregatedIndoorData = new Map(); 
-    const uniqueSetpointTemps = new Set();
-    
-    for (let i = 1; i < dataToUse.length; i++) {
-        const row = dataToUse[i];
-        const indoorName = row[indoorNameColIndex];
-        const setpointTemp = Number(row[setpointTempColIndex]);
-        const operationTime = Number(row[operationTimeColIndex]);
-
-        if (indoorName && !isNaN(setpointTemp) && !isNaN(operationTime)) {
-            const roundedSetpointTemp = Math.round(setpointTemp);
-
-            if (roundedSetpointTemp >= 16 && roundedSetpointTemp <= 32) {
-                if (!aggregatedIndoorData.has(indoorName)) {
-                    aggregatedIndoorData.set(indoorName, {});
-                }
-                const tempMap = aggregatedIndoorData.get(indoorName);
-                tempMap[roundedSetpointTemp] = (tempMap[roundedSetpointTemp] || 0) + (operationTime / 60);
-                uniqueSetpointTemps.add(roundedSetpointTemp);
-            }
-        }
+    // ─── Chart / table drawing ────────────────────────────────────────────────
+    function drawAllChartsAndTables() {
+        clearAllDisplays();
+        drawAggregatedPowerConsumptionChart();
+        drawSummaryTable();
+        drawPeakOffPeakPieChart();
+        drawDetailedPowerConsumptionChart();
+        drawPowerConsumptionTimeSeriesChart();
+        drawDailyPowerConsumptionChart();
+        drawPeakOffPeakNormalTable();
+        drawIndoorOperationTimeChart();
+        drawIndoorNightOperationChart();
+        drawIndoorNightOperationTable();
+        drawIndoorThermostatOnChart();
+        drawExcessiveCoolingChart();
+        drawIndoorHourlyOperationTable();
     }
 
-    if (aggregatedIndoorData.size === 0) { 
-        container.innerHTML = t('noValidData'); 
-        return; 
+    function clearAllDisplays() {
+        const msg = t('noDataMessage');
+        ['systemPowerChartActual','summaryTable_div','peakOffPeakPieChart_div',
+         'detailedPowerConsumptionChart_div','powerConsumptionTimeSeriesChart_div',
+         'dailyPowerConsumptionChart_div','peakOffPeakTable_div',
+         'indoorOperationTimeChart_div','indoorNightOperationChart_div_Chart',
+         'indoorNightOperationTable_div','indoorHourlyOperationTable_div',
+         'indoorThermostatOnChart_div','excessiveCoolingChart_div'
+        ].forEach(id => { document.getElementById(id).innerHTML = msg; });
     }
-    
-    const sortedSetpointTemps = Array.from(uniqueSetpointTemps).sort((a, b) => b - a);
-    const chartDataHeader = [ t('chartHeaders.indoorName'), ...sortedSetpointTemps.map(temp => `${temp}°C`) ];
-    
-    let sortedIndoorNames = Array.from(aggregatedIndoorData.entries()).map(([name, temps]) => ({ 
-        name, 
-        temps, 
-        total: Object.values(temps).reduce((sum, val) => sum + val, 0) 
-    })).sort((a, b) => b.total - a.total);
 
-    // ✅ Áp dụng giới hạn Top N
-    sortedIndoorNames = limitDataToTopN(sortedIndoorNames, 'indoorOperation');
-    
-    const chartData = [chartDataHeader];
-    sortedIndoorNames.forEach(entry => {
-        const row = [entry.name];
-        sortedSetpointTemps.forEach(temp => { 
-            row.push(entry.temps[temp] || 0); 
+    function resetUI() { clearAllDisplays(); updateReportHeader(); }
+
+    function updateReportHeader() {
+        const projectLabel = `${t('projectLabel')} ${reportMetadata?.projectName || (currentLang==='vi' ? 'Chưa tải dữ liệu' : 'Not loaded')}`;
+        const dateLabel    = `${t('reportTimeLabel')} ${reportMetadata?.reportTime  || (currentLang==='vi' ? 'Chưa tải dữ liệu' : 'Not loaded')}`;
+        document.getElementById('reportProjectName').textContent = projectLabel;
+        document.getElementById('reportDate').textContent = dateLabel;
+    }
+
+    // ── Outdoor-based charts ──────────────────────────────────────────────────
+    function getOutdoorData() { return displayChartData.outdoor || displayChartData.default; }
+
+    function drawAggregatedPowerConsumptionChart() {
+        const container = document.getElementById('systemPowerChartActual');
+        const data = getOutdoorData();
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if (ci.name === undefined || ci.powerconsumption === undefined) { container.innerHTML = t('missingNamePower'); return; }
+        const agg = new Map();
+        for (let i = 1; i < data.length; i++) {
+            const name = data[i][ci.name], kw = Number(data[i][ci.powerconsumption]);
+            if (name && !isNaN(kw)) agg.set(name, (agg.get(name) || 0) + kw);
+        }
+        const chartData = [[t('chartHeaders.name'), t('chartHeaders.energyConsumption')],
+            ...Array.from(agg.entries()).sort((a,b) => b[1]-a[1])];
+        if (chartData.length < 2) { container.innerHTML = t('noValidData'); return; }
+        renderChart(google.visualization.ColumnChart, 'systemPowerChartActual', chartData, '', {
+            legend: { position: 'none' }, colors: ['#3498DB'],
+            hAxis: { title: t('axis.unitName') }, vAxis: { title: t('axis.energyKwh') }
         });
-        chartData.push(row);
-    });
+    }
 
-    const setpointColors = { 
-        16: '#0014FF', 17: '#0038E0', 18: '#005DC0', 19: '#0082A0', 20: '#00A780', 21: '#00CC60', 22: '#00F140', 23: '#33F70C', 
-        24: '#7DFC00', 25: '#D9F900', 26: '#F9E600', 27: '#F9A300', 28: '#F96000', 29: '#F90000', 30: '#FF0000', 31: '#FF0000', 32: '#FF0000' 
-    };
-    const chartColors = sortedSetpointTemps.map(temp => setpointColors[temp] || '#CCCCCC');
-    
-    renderChart(
-        google.visualization.BarChart,
-        'indoorOperationTimeChart_div',
-        chartData,
-        '',
-        { 
-            isStacked: true,
-            hAxis: { title: t('axis.operationHours') }, 
-            vAxis: { title: t('axis.indoorName') }, 
-            colors: chartColors,
+    function drawSummaryTable() {
+        const container = document.getElementById('summaryTable_div');
+        const data = getOutdoorData();
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.name, ci.powerconsumption, ci.outdooroperatingtime, ci.outdoortemp_ave].includes(undefined)) {
+            container.innerHTML = t('missingColumns'); return;
+        }
+        const agg = new Map();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            const name = row[ci.name], kw = Number(row[ci.powerconsumption]);
+            let opTime = Number(row[ci.outdooroperatingtime]);
+            const temp = Number(row[ci.outdoortemp_ave]);
+            if (!isNaN(opTime)) opTime /= 60;
+            if (name && !isNaN(kw) && !isNaN(opTime) && !isNaN(temp)) {
+                if (!agg.has(name)) agg.set(name, { powerSum:0, timeSum:0, tempSum:0, tempCount:0 });
+                const e = agg.get(name);
+                e.powerSum += kw; e.timeSum += opTime; e.tempSum += temp; e.tempCount++;
+            }
+        }
+        if (agg.size === 0) { container.innerHTML = t('noValidData'); return; }
+        const rows = [];
+        agg.forEach((e, name) => {
+            const avg = e.tempCount > 0 ? (e.tempSum/e.tempCount).toFixed(2) : 'N/A';
+            rows.push([name, e.powerSum.toFixed(2), e.timeSum.toFixed(2), avg]);
+        });
+        renderDataTable(container, t('summaryHeaders'), rows);
+    }
+
+    function drawPeakOffPeakPieChart() {
+        const container = document.getElementById('peakOffPeakPieChart_div');
+        const data = getOutdoorData();
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if (ci.date === undefined || ci.powerconsumption === undefined) { container.innerHTML = t('missingColumns'); return; }
+        const totals = { peak: 0, normal: 0, offPeak: 0 };
+        for (let i = 1; i < data.length; i++) {
+            const kw = Number(data[i][ci.powerconsumption]);
+            if (!isNaN(kw)) {
+                const d = parseDateTimeString(data[i][ci.date]);
+                if (d) totals[getPeakCategory(d)] += kw;
+            }
+        }
+        const pieData = [[t('pieLabels.typeLabel'), t('chartHeaders.energyConsumption')]];
+        if (totals.peak > 0)    pieData.push([t('pieLabels.peak'),    totals.peak]);
+        if (totals.normal > 0)  pieData.push([t('pieLabels.normal'),  totals.normal]);
+        if (totals.offPeak > 0) pieData.push([t('pieLabels.offPeak'), totals.offPeak]);
+        if (pieData.length < 2) { container.innerHTML = t('noValidData'); return; }
+        renderChart(google.visualization.PieChart, 'peakOffPeakPieChart_div', pieData, '', {
+            pieHole: 0.4, colors: ['#E74C3C','#3498DB','#2ECC71'],
+            legend: { position: 'right', textStyle: { fontSize: 13 } }
+        });
+    }
+
+    function drawDetailedPowerConsumptionChart() {
+        const container = document.getElementById('detailedPowerConsumptionChart_div');
+        const data = getOutdoorData();
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.date, ci.name, ci.powerconsumption].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+        const agg = new Map();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i], name = row[ci.name], kw = Number(row[ci.powerconsumption]);
+            if (name && !isNaN(kw)) {
+                const d = parseDateTimeString(row[ci.date]);
+                if (d) {
+                    if (!agg.has(name)) agg.set(name, { peak:0, normal:0, offPeak:0, total:0 });
+                    const cat = getPeakCategory(d), e = agg.get(name);
+                    e[cat] += kw; e.total += kw;
+                }
+            }
+        }
+        const sorted = Array.from(agg.entries()).map(([n,d]) => ({name:n,...d})).sort((a,b)=>b.total-a.total);
+        const chartData = [[t('chartHeaders.unitName'), t('chartHeaders.peak'), t('chartHeaders.normal'), t('chartHeaders.offPeak')],
+            ...sorted.map(r => [r.name, r.peak, r.normal, r.offPeak])];
+        if (chartData.length < 2) { container.innerHTML = t('noValidData'); return; }
+        renderChart(google.visualization.ColumnChart, 'detailedPowerConsumptionChart_div', chartData, '', {
+            isStacked: true, colors: ['#E74C3C','#3498DB','#2ECC71'],
+            hAxis: { title: t('axis.unitName'), slantedText: true, slantedTextAngle: 30 },
+            vAxis: { title: t('axis.energyKwh') }
+        });
+    }
+
+    function drawPowerConsumptionTimeSeriesChart() {
+        const container = document.getElementById('powerConsumptionTimeSeriesChart_div');
+        const data = getOutdoorData();
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.date, ci.name, ci.powerconsumption, ci.outdoortemp_ave].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+        const tsAgg = new Map(); const oduNames = new Set();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i], name = row[ci.name];
+            const kw = Number(row[ci.powerconsumption]), temp = Number(row[ci.outdoortemp_ave]);
+            const d = parseDateTimeString(row[ci.date]);
+            if (!d || isNaN(kw) || isNaN(temp) || !name) continue;
+            const key = d.getTime();
+            if (!tsAgg.has(key)) tsAgg.set(key, { _date: d, _tempSum: 0, _tempCount: 0 });
+            const e = tsAgg.get(key);
+            e[name] = (e[name] || 0) + kw; e._tempSum += temp; e._tempCount++; oduNames.add(name);
+        }
+        const entries = Array.from(tsAgg.values()).sort((a,b) => a._date-b._date);
+        if (entries.length === 0) { container.innerHTML = t('noValidData'); return; }
+        const names = Array.from(oduNames).sort();
+        const chartData = [[t('chartHeaders.time'), ...names, t('chartHeaders.outdoorTemp')],
+            ...entries.map(e => [e._date, ...names.map(n => e[n]||0), e._tempSum/e._tempCount])];
+        const series = {};
+        names.forEach((_, i) => series[i] = { type: 'bars' });
+        series[names.length] = { type: 'line', targetAxisIndex: 1, color: '#E74C3C' };
+        renderChart(google.visualization.ComboChart, 'powerConsumptionTimeSeriesChart_div', chartData, '', {
+            isStacked: true, seriesType: 'bars', series,
+            vAxes: { 0: { title: t('axis.energyKwh') }, 1: { title: t('axis.outdoorTempC') } },
+            hAxis: { title: t('axis.time'), format: 'MMM d, H:mm' }
+        });
+    }
+
+    function drawDailyPowerConsumptionChart() {
+        const container = document.getElementById('dailyPowerConsumptionChart_div');
+        const data = getOutdoorData();
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.date, ci.name, ci.powerconsumption, ci.outdoortemp_ave].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+        const dailyAgg = new Map(); const unitNames = new Set();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i], unit = row[ci.name];
+            const kw = Number(row[ci.powerconsumption]), temp = Number(row[ci.outdoortemp_ave]);
+            const d = parseDateTimeString(row[ci.date]);
+            if (d && !isNaN(kw) && unit && !isNaN(temp)) {
+                const dateStr = formatDateToYYYYMMDD(d);
+                unitNames.add(unit);
+                if (!dailyAgg.has(dateStr)) dailyAgg.set(dateStr, { units: new Map(), _tempSum: 0, _tempCount: 0 });
+                const day = dailyAgg.get(dateStr);
+                day.units.set(unit, (day.units.get(unit)||0) + kw);
+                day._tempSum += temp; day._tempCount++;
+            }
+        }
+        if (dailyAgg.size === 0) { container.innerHTML = t('noValidData'); return; }
+        const sortedUnits = Array.from(unitNames).sort();
+        const sortedDates = Array.from(dailyAgg.keys()).sort();
+        const series = {};
+        sortedUnits.forEach((_, i) => series[i] = { type: 'bars', targetAxisIndex: 0 });
+        series[sortedUnits.length] = { type: 'line', targetAxisIndex: 1, color: '#E74C3C', lineWidth: 3, pointSize: 5 };
+        const chartData = [[t('chartHeaders.day'), ...sortedUnits, t('chartHeaders.outdoorTemp')],
+            ...sortedDates.map(dateStr => {
+                const day = dailyAgg.get(dateStr);
+                const label = currentLang === 'vi' ? `Ngày ${new Date(dateStr+'T00:00:00').getDate()}` : `Day ${new Date(dateStr+'T00:00:00').getDate()}`;
+                return [label, ...sortedUnits.map(u => day.units.get(u)||0), day._tempSum/day._tempCount];
+            })];
+        renderChart(google.visualization.ComboChart, 'dailyPowerConsumptionChart_div', chartData, '', {
+            isStacked: true, seriesType: 'bars', series,
+            vAxes: { 0: { title: t('axis.energyKwh') }, 1: { title: t('axis.outdoorTempC') } },
+            hAxis: { title: t('axis.dayOfMonth') }
+        });
+    }
+
+    function drawPeakOffPeakNormalTable() {
+        const container = document.getElementById('peakOffPeakTable_div');
+        const data = getOutdoorData();
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.date, ci.name, ci.powerconsumption].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+        const agg = new Map();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i], name = row[ci.name], kw = Number(row[ci.powerconsumption]);
+            if (name && !isNaN(kw)) {
+                const d = parseDateTimeString(row[ci.date]);
+                if (d) {
+                    if (!agg.has(name)) agg.set(name, { peak:0, normal:0, offPeak:0 });
+                    agg.get(name)[getPeakCategory(d)] += kw;
+                }
+            }
+        }
+        if (agg.size === 0) { container.innerHTML = t('noValidData'); return; }
+        const rows = [];
+        agg.forEach((d, name) => {
+            rows.push([name, d.peak.toFixed(2), d.normal.toFixed(2), d.offPeak.toFixed(2), (d.peak+d.normal+d.offPeak).toFixed(2)]);
+        });
+        renderDataTable(container, t('peakTableHeaders'), rows);
+    }
+
+    // ── Indoor-based charts ───────────────────────────────────────────────────
+    function drawIndoorOperationTimeChart() {
+        const container = document.getElementById('indoorOperationTimeChart_div');
+        const data = displayChartData.indoor;
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.indoor_name, ci.setpoint_temperature, ci.operation_time].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+        const agg = new Map(); const setpoints = new Set();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i], name = row[ci.indoor_name];
+            const sp = Math.round(Number(row[ci.setpoint_temperature]));
+            const opT = Number(row[ci.operation_time]);
+            if (name && !isNaN(sp) && !isNaN(opT) && sp >= 16 && sp <= 32) {
+                if (!agg.has(name)) agg.set(name, {});
+                const m = agg.get(name);
+                m[sp] = (m[sp]||0) + (opT/60);
+                setpoints.add(sp);
+            }
+        }
+        if (agg.size === 0) { container.innerHTML = t('noValidData'); return; }
+        const sortedSP = Array.from(setpoints).sort((a,b)=>b-a);
+        const header = [t('chartHeaders.indoorName'), ...sortedSP.map(t => `${t}°C`)];
+        let rows = Array.from(agg.entries()).map(([name, temps]) => ({
+            name, temps, total: Object.values(temps).reduce((s,v)=>s+v, 0)
+        })).sort((a,b)=>b.total-a.total);
+        rows = limitDataToTopN(rows, 'indoorOperation');
+        const chartData = [header, ...rows.map(r => [r.name, ...sortedSP.map(sp => r.temps[sp]||0)])];
+        const spColors = {16:'#0014FF',17:'#0038E0',18:'#005DC0',19:'#0082A0',20:'#00A780',21:'#00CC60',22:'#00F140',23:'#33F70C',24:'#7DFC00',25:'#D9F900',26:'#F9E600',27:'#F9A300',28:'#F96000',29:'#F90000',30:'#FF0000',31:'#FF0000',32:'#FF0000'};
+        renderChart(google.visualization.BarChart, 'indoorOperationTimeChart_div', chartData, '', {
+            isStacked: true, hAxis: { title: t('axis.operationHours') }, vAxis: { title: t('axis.indoorName') },
+            colors: sortedSP.map(s => spColors[s]||'#CCCCCC'),
             legend: { position: 'right', textStyle: { fontSize: 11 } },
             chartArea: { left: '15%', top: '10%', width: '70%', height: '80%' }
-        }
-    );
-}
+        });
+    }
 
-        // Thay thế hàm drawIndoorNightOperationChart() cũ bằng hàm này
-function drawIndoorNightOperationChart() {
-    const chartContainer = document.getElementById('indoorNightOperationChart_div_Chart');
-    const dataToUse = displayChartData.indoor;
-    if (!dataToUse || dataToUse.length < 2) { 
-        chartContainer.innerHTML = t('noValidData'); 
-        return; 
+    function drawIndoorNightOperationChart() {
+        const container = document.getElementById('indoorNightOperationChart_div_Chart');
+        const data = displayChartData.indoor;
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.indoor_name, ci.date, ci.operation_time].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+        let rows = getIndoorNightOperationRows(data, ci).sort((a,b)=>b.totalTime-a.totalTime);
+        if (rows.length === 0) { container.innerHTML = t('noValidData'); return; }
+        rows = limitDataToTopN(rows, 'indoorNight');
+        const chartData = [[t('chartHeaders.indoorName'), t('chartHeaders.nightOperation'), t('chartHeaders.dayOperation')],
+            ...rows.map(u => [u.name, u.nightTime, u.totalTime - u.nightTime])];
+        renderChart(google.visualization.BarChart, 'indoorNightOperationChart_div_Chart', chartData, '', {
+            isStacked: true, hAxis: { title: t('axis.operationHours') }, vAxis: { title: t('axis.indoorName') },
+            colors: ['#0A3D62','#a4b0be']
+        });
     }
-    
-    const headers = dataToUse[0];
-    const colIndices = getColumnIndices(headers);
-    const indoorNameColIndex = colIndices.indoor_name; 
-    const dateColIndex = colIndices.date; 
-    const operationTimeColIndex = colIndices.operation_time;
-    
-    if (indoorNameColIndex === undefined || dateColIndex === undefined || operationTimeColIndex === undefined) { 
-        chartContainer.innerHTML = t('missingColumns'); 
-        return; 
+
+    function drawIndoorNightOperationTable() {
+        const container = document.getElementById('indoorNightOperationTable_div');
+        const data = displayChartData.indoor;
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.indoor_name, ci.date, ci.operation_time].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+        const rows = getIndoorNightOperationRows(data, ci)
+            .sort((a,b) => b.nightTime - a.nightTime)
+            .map(({ name, totalTime, nightTime }) => [
+                name,
+                nightTime.toFixed(2),
+                `${(totalTime > 0 ? ((nightTime / totalTime) * 100) : 0).toFixed(1)}%`,
+                totalTime.toFixed(2)
+            ]);
+        if (rows.length === 0) { container.innerHTML = t('noValidData'); return; }
+        renderDataTable(container, t('indoorNightTableHeaders'), rows);
     }
-    
-    const nightOperationData = new Map(); 
-    const totalOverallOperationData = new Map();
-    
-    for (let i = 1; i < dataToUse.length; i++) {
-        const row = dataToUse[i];
-        const indoorName = row[indoorNameColIndex]; 
-        const dateString = row[dateColIndex]; 
-        const operationTime = Number(row[operationTimeColIndex]);
-        const dateObj = parseDateTimeString(dateString);
-        
-        if (indoorName && dateObj && !isNaN(operationTime)) {
-            const hour = dateObj.getHours(); 
-            const operationTimeHours = operationTime / 60;
-            totalOverallOperationData.set(indoorName, (totalOverallOperationData.get(indoorName) || 0) + operationTimeHours);
-            if (hour >= 22 || hour < 7) { 
-                nightOperationData.set(indoorName, (nightOperationData.get(indoorName) || 0) + operationTimeHours); 
+
+    function drawIndoorThermostatOnChart() {
+        const container = document.getElementById('indoorThermostatOnChart_div');
+        const data = displayChartData.indoor;
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.indoor_name, ci.indoor_thermo_on_time, ci.operation_time].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+        const agg = new Map();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i], name = row[ci.indoor_name];
+            const thermoOn = Number(row[ci.indoor_thermo_on_time]), opT = Number(row[ci.operation_time]);
+            if (name && !isNaN(thermoOn) && !isNaN(opT)) {
+                if (!agg.has(name)) agg.set(name, { thermoOn: 0, total: 0 });
+                const e = agg.get(name);
+                e.thermoOn += thermoOn / 60; e.total += opT / 60;
             }
         }
+        if (agg.size === 0) { container.innerHTML = t('noValidData'); return; }
+        let rows = Array.from(agg.entries()).map(([name, d]) => ({
+            name, thermoOn: d.thermoOn, thermoOff: Math.max(0, d.total - d.thermoOn)
+        })).sort((a,b)=>b.thermoOn-a.thermoOn);
+        rows = limitDataToTopN(rows, 'indoorThermostat');
+        const chartData = [[t('chartHeaders.indoorName'), t('chartHeaders.thermoOn'), t('chartHeaders.thermoOff')],
+            ...rows.map(u => [u.name, u.thermoOn, u.thermoOff])];
+        renderChart(google.visualization.BarChart, 'indoorThermostatOnChart_div', chartData, '', {
+            isStacked: true, hAxis: { title: t('axis.operationHours') }, vAxis: { title: t('axis.indoorName') },
+            colors: ['#3498DB','#dfe4ea']
+        });
     }
-    
-    if (nightOperationData.size === 0 && totalOverallOperationData.size === 0) { 
-        chartContainer.innerHTML = t('noValidData'); 
-        return; 
-    }
-    
-    let sortedUnitsData = Array.from(totalOverallOperationData.keys()).map(name => ({
-        name,
-        totalTime: totalOverallOperationData.get(name) || 0,
-        nightTime: nightOperationData.get(name) || 0
-    })).sort((a, b) => b.totalTime - a.totalTime);
 
-    // ✅ Áp dụng giới hạn Top N
-    sortedUnitsData = limitDataToTopN(sortedUnitsData, 'indoorNight');
-    
-    const chartData = [[ t('chartHeaders.indoorName'), t('chartHeaders.nightOperation'), t('chartHeaders.dayOperation') ]];
-    
-    sortedUnitsData.forEach(unit => {
-        const dayTime = unit.totalTime - unit.nightTime;
-        chartData.push([unit.name, unit.nightTime, dayTime]);
-    });
-    
-    renderChart(google.visualization.BarChart, 'indoorNightOperationChart_div_Chart', chartData, '', { 
-        isStacked: true, 
-        hAxis: { title: t('axis.operationHours') }, 
-        vAxis: { title: t('axis.indoorName') }, 
-        colors: ['#0A3D62', '#a4b0be'] 
-    });
-}
-
-        function drawIndoorNightOperationTable() {
-            const container = document.getElementById('indoorNightOperationTable_div');
-            const dataToUse = displayChartData.indoor;
-            if (!dataToUse || dataToUse.length < 2) { container.innerHTML = t('noValidData'); return; }
-            const headers = dataToUse[0];
-            const colIndices = getColumnIndices(headers);
-            const indoorNameColIndex = colIndices.indoor_name; const dateColIndex = colIndices.date; const operationTimeColIndex = colIndices.operation_time;
-            if (indoorNameColIndex === undefined || dateColIndex === undefined || operationTimeColIndex === undefined) { container.innerHTML = t('missingColumns'); return; }
-            const nightOperationData = new Map(); const totalOverallOperationData = new Map();
-            for (let i = 1; i < dataToUse.length; i++) {
-                const row = dataToUse[i];
-                const indoorName = row[indoorNameColIndex]; const dateString = row[dateColIndex]; const operationTime = Number(row[operationTimeColIndex]);
-                const dateObj = parseDateTimeString(dateString);
-                if (indoorName && dateObj && !isNaN(operationTime)) {
-                    const hour = dateObj.getHours(); const operationTimeHours = operationTime / 60;
-                    totalOverallOperationData.set(indoorName, (totalOverallOperationData.get(indoorName) || 0) + operationTimeHours);
-                    if (hour >= 22 || hour < 7) { nightOperationData.set(indoorName, (nightOperationData.get(indoorName) || 0) + operationTimeHours); }
-                }
+    function drawExcessiveCoolingChart() {
+        const container = document.getElementById('excessiveCoolingChart_div');
+        const data = displayChartData.indoor;
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        // FIX: now uses getColumnIndices() like all other charts
+        const ci = getColumnIndices(data[0]);
+        const nameIdx = ci.indoor_name;
+        const spIdx   = ci.setpoint_temperature;
+        const opIdx   = ci.excessive_cooling_time ?? ci.operation_time;
+        if ([nameIdx, spIdx, opIdx].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+        const agg = new Map();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i], name = row[nameIdx]?.toString().trim();
+            const sp = Number(row[spIdx]), opT = Number(row[opIdx]);
+            if (name && !isNaN(sp) && !isNaN(opT) && sp < 22 && opT > 0) {
+                agg.set(name, (agg.get(name)||0) + (opT / 60));
             }
-            if (nightOperationData.size === 0 && totalOverallOperationData.size === 0) { container.innerHTML = t('noValidData'); return; }
-            let tableHtml = `<table class="data-table"><thead><tr>`;
-            const headersToUse = t('indoorNightTableHeaders');
-            headersToUse.forEach(h => tableHtml += `<th>${h}</th>`);
-            tableHtml += `</tr></thead><tbody>`;
-            Array.from(totalOverallOperationData.keys()).sort((nameA, nameB) => (nightOperationData.get(nameB) || 0) - (nightOperationData.get(nameA) || 0)).forEach(name => {
-                const totalTime = totalOverallOperationData.get(name) || 0; const nightTime = nightOperationData.get(name) || 0; const percentage = (totalTime > 0) ? ((nightTime / totalTime) * 100).toFixed(1) : '0.0';
-                tableHtml += `<tr><td>${name}</td><td>${nightTime.toFixed(2)}</td><td>${percentage}%</td><td>${totalTime.toFixed(2)}</td></tr>`;
-            });
-            tableHtml += `</tbody></table>`;
-            container.innerHTML = tableHtml;
         }
-
-        function drawIndoorHourlyOperationTable() {
-            const container = document.getElementById('indoorHourlyOperationTable_div');
-            const dataToUse = displayChartData.indoor;
-            if (!dataToUse || dataToUse.length < 2) { container.innerHTML = t('noValidData'); return; }
-            const headers = dataToUse[0];
-            const colIndices = getColumnIndices(headers);
-            const indoorNameColIndex = colIndices.indoor_name; const dateColIndex = colIndices.date; const operationTimeColIndex = colIndices.operation_time;
-            if (indoorNameColIndex === undefined || dateColIndex === undefined || operationTimeColIndex === undefined) { container.innerHTML = t('missingColumns'); return; }
-            const hourlyOperationData = new Map(); const uniqueIndoorNames = new Set();
-            for (let i = 1; i < dataToUse.length; i++) {
-                const row = dataToUse[i];
-                const indoorName = row[indoorNameColIndex]; const dateString = row[dateColIndex]; const operationTime = Number(row[operationTimeColIndex]);
-                const dateObj = parseDateTimeString(dateString);
-                if (indoorName && dateObj && !isNaN(operationTime)) {
-                    const hour = dateObj.getHours(); const operationTimeHours = operationTime / 60;
-                    if (!hourlyOperationData.has(indoorName)) {
-                        hourlyOperationData.set(indoorName, { total: 0 });
-                        for (let h = 0; h < 24; h++) { hourlyOperationData.get(indoorName)[`hour_${h}`] = 0; }
-                    }
-                    const unitData = hourlyOperationData.get(indoorName);
-                    unitData[`hour_${hour}`] += operationTimeHours; unitData.total += operationTimeHours; uniqueIndoorNames.add(indoorName);
-                }
-            }
-            if (hourlyOperationData.size === 0) { container.innerHTML = t('noValidData'); return; }
-            const sortedIndoorNames = Array.from(uniqueIndoorNames).sort((a, b) => (hourlyOperationData.get(b)?.total || 0) - (hourlyOperationData.get(a)?.total || 0));
-            let tableHtml = `<div style="overflow-x: auto; width: 100%;"><table class="data-table hourly-table"><thead><tr><th>${ t('chartHeaders.indoorName') }</th>`;
-            for (let h = 0; h < 24; h++) { tableHtml += `<th>${h}h</th>`; }
-            tableHtml += `<th>${ t('hourlyTableHeadersPrefix') }</th></tr></thead><tbody>`;
-            let overallHourlyTotals = {}; for (let h = 0; h < 24; h++) { overallHourlyTotals[h] = 0; } let overallGrandTotal = 0;
-            sortedIndoorNames.forEach(name => {
-                const unitData = hourlyOperationData.get(name);
-                tableHtml += `<tr><td>${name}</td>`;
-                for (let h = 0; h < 24; h++) { const time = unitData[`hour_${h}`].toFixed(1); tableHtml += `<td>${time}</td>`; overallHourlyTotals[h] += unitData[`hour_${h}`]; }
-                tableHtml += `<td>${unitData.total.toFixed(1)}</td></tr>`; overallGrandTotal += unitData.total;
-            });
-            tableHtml += `<tr style="font-weight:bold;"><td>${ (currentLang==='vi' ? 'Tổng cộng' : 'Total') }</td>`;
-            for (let h = 0; h < 24; h++) { tableHtml += `<td>${overallHourlyTotals[h].toFixed(1)}</td>`; }
-            tableHtml += `<td>${overallGrandTotal.toFixed(1)}</td></tr>`;
-            tableHtml += `</tbody></table></div>`;
-            container.innerHTML = tableHtml;
-            highlightNightHours(22, 5);
-        }
-
-        // Thay thế hàm drawIndoorThermostatOnChart() cũ bằng hàm này
-function drawIndoorThermostatOnChart() {
-    const chartContainer = document.getElementById('indoorThermostatOnChart_div');
-    const dataToUse = displayChartData.indoor;
-    if (!dataToUse || dataToUse.length < 2) { 
-        chartContainer.innerHTML = t('noValidData'); 
-        return; 
-    }
-    
-    const headers = dataToUse[0];
-    const colIndices = getColumnIndices(headers);
-    const indoorNameColIndex = colIndices.indoor_name; 
-    const thermoOnTimeColIndex = colIndices.indoor_thermo_on_time; 
-    const operationTimeColIndex = colIndices.operation_time;
-    
-    if (indoorNameColIndex === undefined || thermoOnTimeColIndex === undefined || operationTimeColIndex === undefined) { 
-        chartContainer.innerHTML = t('missingColumns'); 
-        return; 
-    }
-    
-    const aggregatedThermoData = new Map();
-    for (let i = 1; i < dataToUse.length; i++) {
-        const row = dataToUse[i];
-        const indoorName = row[indoorNameColIndex]; 
-        const thermoOnTime = Number(row[thermoOnTimeColIndex]); 
-        const operationTime = Number(row[operationTimeColIndex]);
-        
-        if (indoorName && !isNaN(thermoOnTime) && !isNaN(operationTime)) {
-            if (!aggregatedThermoData.has(indoorName)) { 
-                aggregatedThermoData.set(indoorName, { thermoOn: 0, totalOperation: 0 }); 
-            }
-            const unitData = aggregatedThermoData.get(indoorName);
-            unitData.thermoOn += (thermoOnTime / 60); 
-            unitData.totalOperation += (operationTime / 60);
-        }
-    }
-    
-    if (aggregatedThermoData.size === 0) { 
-        chartContainer.innerHTML = t('noValidData'); 
-        return; 
-    }
-    
-    let sortedUnitsData = Array.from(aggregatedThermoData.entries()).map(([name, data]) => { 
-        const thermoOff = data.totalOperation - data.thermoOn; 
-        return { name, thermoOn: data.thermoOn, thermoOff: thermoOff >= 0 ? thermoOff : 0 }; 
-    }).sort((a, b) => b.thermoOn - a.thermoOn);
-
-    // ✅ Áp dụng giới hạn Top N
-    sortedUnitsData = limitDataToTopN(sortedUnitsData, 'indoorThermostat');
-    
-    const chartData = [[ t('chartHeaders.indoorName'), t('chartHeaders.thermoOn'), t('chartHeaders.thermoOff') ]];
-    sortedUnitsData.forEach(unit => { 
-        chartData.push([unit.name, unit.thermoOn, unit.thermoOff]); 
-    });
-    
-    renderChart(google.visualization.BarChart, 'indoorThermostatOnChart_div', chartData, '', { 
-        isStacked: true, 
-        hAxis: { title: t('axis.operationHours') }, 
-        vAxis: { title: t('axis.indoorName') }, 
-        colors: ['#3498DB', '#dfe4ea'] 
-    });
-}
-
-     
-function drawExcessiveCoolingChart() {
-    const chartContainer = document.getElementById('excessiveCoolingChart_div');
-    const dataToUse = displayChartData.indoor;
-    if (!dataToUse || dataToUse.length < 2) {
-        chartContainer.innerHTML = t('noValidData');
-        return;
-    }
-    const headers = dataToUse[0];
-    // Đổi tên cột cho đúng với header bạn cung cấp
-    const indoorNameColIndex = headers.indexOf('Name');
-    const setpointTempColIndex = headers.indexOf('Setpoint_AVE');
-    const operationTimeColIndex = headers.indexOf('HourlyCoolOperatingTime');
-
-    if (
-        indoorNameColIndex === -1 ||
-        setpointTempColIndex === -1 ||
-        operationTimeColIndex === -1
-    ) {
-        chartContainer.innerHTML = t('missingColumns');
-        return;
-    }
-
-    // Chỉ lấy các dòng có setpoint_AVE < 22 và HourlyCoolOperatingTime > 0
-    const excessiveCoolingData = new Map();
-    let hasValidSetpoint = false;
-    for (let i = 1; i < dataToUse.length; i++) {
-        const row = dataToUse[i];
-        const indoorName = row[indoorNameColIndex];
-        const setpointTemp = Number(row[setpointTempColIndex]);
-        const operationTime = Number(row[operationTimeColIndex]);
-        if (
-            indoorName &&
-            indoorName.toString().trim() !== '' &&
-            !isNaN(setpointTemp) &&
-            !isNaN(operationTime) &&
-            setpointTemp < 22 &&
-            operationTime > 0
-        ) {
-            hasValidSetpoint = true;
-            excessiveCoolingData.set(
-                indoorName,
-                (excessiveCoolingData.get(indoorName) || 0) + operationTime // Đã là giờ rồi, không cần chia 60
-            );
-        }
-    }
-
-    if (!hasValidSetpoint || excessiveCoolingData.size === 0) {
-        chartContainer.innerHTML =
-            currentLang === 'vi'
+        if (agg.size === 0) {
+            container.innerHTML = currentLang === 'vi'
                 ? 'Không có dữ liệu nhiệt độ cài đặt < 22°C và thời gian hoạt động > 0.'
                 : 'No setpoint temperature < 22°C and operation time > 0.';
-        return;
-    }
-
-    // Chỉ hiển thị các dàn lạnh có thời gian > 0
-    let filteredData = Array.from(excessiveCoolingData.entries())
-        .filter(([name, hours]) => name && name.toString().trim() !== '' && hours > 0)
-        .map(([name, hours]) => ({ name, hours }))
-        .sort((a, b) => b.hours - a.hours);
-
-    filteredData = limitDataToTopN(filteredData, 'excessiveCooling');
-
-    if (filteredData.length === 0) {
-        chartContainer.innerHTML =
-            currentLang === 'vi'
-                ? 'Không có dàn lạnh nào cài đặt nhiệt độ < 22°C và có giờ hoạt động > 0.'
-                : 'No indoor unit has setpoint < 22°C and operation time > 0.';
-        return;
-    }
-
-    const chartData = [[t('chartHeaders.indoorName'), t('chartHeaders.excessiveCooling')]];
-    filteredData.forEach(item => chartData.push([item.name, item.hours]));
-    renderChart(
-        google.visualization.BarChart,
-        'excessiveCoolingChart_div',
-        chartData,
-        '',
-        {
-            legend: { position: 'none' },
-            hAxis: { title: t('axis.operationHours') },
-            vAxis: { title: t('axis.indoorName') },
-            colors: ['#E74C3C']
+            return;
         }
-    );
-}
+        let rows = Array.from(agg.entries()).filter(([n,h])=>n&&h>0)
+            .map(([name,hours])=>({name,hours})).sort((a,b)=>b.hours-a.hours);
+        rows = limitDataToTopN(rows, 'excessiveCooling');
+        if (rows.length === 0) { container.innerHTML = t('noValidData'); return; }
+        const chartData = [[t('chartHeaders.indoorName'), t('chartHeaders.excessiveCooling')],
+            ...rows.map(r => [r.name, r.hours])];
+        renderChart(google.visualization.BarChart, 'excessiveCoolingChart_div', chartData, '', {
+            legend: { position: 'none' }, hAxis: { title: t('axis.operationHours') },
+            vAxis: { title: t('axis.indoorName') }, colors: ['#E74C3C']
+        });
+    }
 
-        function handleFileImport() {
-            const fileInput = document.getElementById('fileInput'); const file = fileInput.files[0]; const errorMessage = document.getElementById('errorMessage');
-            errorMessage.textContent = ''; resetUI();
-            if (!file) { errorMessage.textContent = t('pleaseSelectFile'); return; }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let parsedFileResult;
-                    if (file.name.endsWith('.csv')) { parsedFileResult = parseCSV(e.target.result); if (!parsedFileResult || !parsedFileResult.data) throw new Error("Dữ liệu CSV không hợp lệ."); }
-                    else if (file.name.endsWith('.json')) { parsedFileResult = parseJSON(e.target.result); if (!parsedFileResult || !parsedFileResult.data) throw new Error("Dữ liệu JSON không hợp lệ."); }
-                    else if (file.name.endsWith('.xlsx')) { parsedFileResult = parseXLSX(e.target.result); if (!parsedFileResult.outdoor && !parsedFileResult.indoor && !parsedFileResult.default) { throw new Error("Dữ liệu XLSX không hợp lệ."); } }
-                    else { errorMessage.textContent = t('unsupportedFileFormat'); return; }
-                    reportMetadata = parsedFileResult.metadata || { projectName: 'N/A', reportTime: 'N/A' };
-                    delete parsedFileResult.metadata;
-                    originalChartData = parsedFileResult;
-                    allAvailableDates.clear(); selectedDates.clear();
-                    let dataForDateRange = originalChartData.outdoor || originalChartData.indoor || originalChartData.default;
-                    if (dataForDateRange && dataForDateRange.length > 1) {
-                        const headers = dataForDateRange[0]; const colIndices = getColumnIndices(headers); const dateColIndex = colIndices.date;
-                        if (dateColIndex !== undefined) {
-                            dataForDateRange.forEach((row, index) => {
-                                if (index === 0) return;
-                                const dateStr = row[dateColIndex]; const dateObj = parseDateTimeString(dateStr);
-                                if (dateObj) { allAvailableDates.add(formatDateToYYYYMMDD(dateObj)); }
-                            });
+    function drawIndoorHourlyOperationTable() {
+        const container = document.getElementById('indoorHourlyOperationTable_div');
+        const data = displayChartData.indoor;
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.indoor_name, ci.date, ci.operation_time].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+        const hourlyData = new Map(); const names = new Set();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i], name = row[ci.indoor_name], opT = Number(row[ci.operation_time]);
+            const d = parseDateTimeString(row[ci.date]);
+            if (name && d && !isNaN(opT)) {
+                const h = d.getHours(), hrs = opT / 60;
+                if (!hourlyData.has(name)) {
+                    const entry = { total: 0 };
+                    for (let hh = 0; hh < 24; hh++) entry[`h${hh}`] = 0;
+                    hourlyData.set(name, entry);
+                }
+                const e = hourlyData.get(name);
+                e[`h${h}`] += hrs; e.total += hrs; names.add(name);
+            }
+        }
+        if (hourlyData.size === 0) { container.innerHTML = t('noValidData'); return; }
+        const sortedNames = Array.from(names).sort((a,b) => (hourlyData.get(b)?.total||0) - (hourlyData.get(a)?.total||0));
+        const hourTotals = Object.fromEntries([...Array(24).keys()].map(h => [h, 0]));
+        let grandTotal = 0;
+        let html = `<div style="overflow-x:auto;width:100%;"><table class="data-table hourly-table"><thead><tr><th>${t('chartHeaders.indoorName')}</th>`;
+        for (let h = 0; h < 24; h++) html += `<th>${h}h</th>`;
+        html += `<th>${t('hourlyTableHeadersPrefix')}</th></tr></thead><tbody>`;
+        sortedNames.forEach(name => {
+            const e = hourlyData.get(name);
+            html += `<tr><td>${escapeHtml(name)}</td>`;
+            for (let h = 0; h < 24; h++) {
+                const v = e[`h${h}`];
+                html += `<td>${escapeHtml(v.toFixed(1))}</td>`;
+                hourTotals[h] += v;
+            }
+            html += `<td>${escapeHtml(e.total.toFixed(1))}</td></tr>`;
+            grandTotal += e.total;
+        });
+        html += `<tr style="font-weight:bold;"><td>${currentLang==='vi'?'Tổng cộng':'Total'}</td>`;
+        for (let h = 0; h < 24; h++) html += `<td>${escapeHtml(hourTotals[h].toFixed(1))}</td>`;
+        html += `<td>${escapeHtml(grandTotal.toFixed(1))}</td></tr></tbody></table></div>`;
+        container.innerHTML = html;
+        highlightNightHours(22, 5);
+    }
+
+    // ─── Night-hours highlight ────────────────────────────────────────────────
+    function highlightNightHours(defaultStart = 22, defaultEnd = 5) {
+        const s = parseInt(document.getElementById('nightStart')?.value ?? defaultStart, 10);
+        const e = parseInt(document.getElementById('nightEnd')?.value ?? defaultEnd, 10);
+        const hours = [];
+        if (s <= e) { for (let h = s; h <= e; h++) hours.push(h); }
+        else        { for (let h = s; h <= 23; h++) hours.push(h); for (let h = 0; h <= e; h++) hours.push(h); }
+        document.querySelectorAll('.hourly-table td, .hourly-table th').forEach(c => c.classList.remove('night-hour'));
+        const table = document.querySelector('.hourly-table');
+        if (!table) return;
+        hours.forEach(h => {
+            const col = h + 2; // col 1 = name, col 2 = 0h, ... col n+2 = (n)h
+            table.querySelectorAll(`tr td:nth-child(${col}), tr th:nth-child(${col})`).forEach(c => c.classList.add('night-hour'));
+        });
+    }
+
+    // ─── File import ──────────────────────────────────────────────────────────
+    function handleFileImport() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        const errorEl = document.getElementById('errorMessage');
+        errorEl.textContent = ''; resetUI();
+        if (!file) { errorEl.textContent = t('pleaseSelectFile'); return; }
+        const lowerFileName = file.name.toLowerCase();
+
+        const reader = new FileReader();
+        reader.onerror = () => { errorEl.textContent = t('errorReadingFilePrefix'); };
+        reader.onload = function(e) {
+            try {
+                let result;
+                if      (lowerFileName.endsWith('.csv'))  result = parseCSV(e.target.result);
+                else if (lowerFileName.endsWith('.json')) result = parseJSON(e.target.result);
+                else if (lowerFileName.endsWith('.xlsx')) result = parseXLSX(e.target.result);
+                else { errorEl.textContent = t('unsupportedFileFormat'); return; }
+
+                if (!result || (!result.outdoor && !result.indoor && !result.default && !result.data)) {
+                    throw new Error(currentLang === 'vi' ? 'Dữ liệu không hợp lệ.' : 'Invalid data.');
+                }
+                // Normalize csv/json single-sheet result
+                if (result.data) { result.default = result.data; delete result.data; }
+
+                reportMetadata = result.metadata || { projectName: 'N/A', reportTime: 'N/A' };
+                delete result.metadata;
+                originalChartData = result;
+
+                allAvailableDates.clear(); selectedDates.clear();
+                const dateSource = originalChartData.outdoor || originalChartData.indoor || originalChartData.default;
+                if (dateSource && dateSource.length > 1) {
+                    const ci = getColumnIndices(dateSource[0]);
+                    if (ci.date !== undefined) {
+                        for (let i = 1; i < dateSource.length; i++) {
+                            const d = parseDateTimeString(dateSource[i][ci.date]);
+                            if (d) allAvailableDates.add(formatDateToYYYYMMDD(d));
                         }
                     }
-                    allAvailableDates.forEach(date => selectedDates.add(date));
-                    if (allAvailableDates.size > 0) { const firstDateStr = Array.from(allAvailableDates).sort()[0]; const firstDateObj = new Date(firstDateStr); currentCalendarMonth = firstDateObj.getUTCMonth(); currentCalendarYear = firstDateObj.getUTCFullYear(); }
-                    else { const today = new Date(); currentCalendarMonth = today.getMonth(); currentCalendarYear = today.getFullYear(); }
-                    updateReportHeader(); updateSelectedDatesSummary(); applyDateFilter();
-                } catch (error) { errorMessage.textContent = t('errorReadingFilePrefix') + ' ' + error.message; console.error("Lỗi xử lý file:", error); }
-            };
-            reader.onerror = function() { errorMessage.textContent = t('errorReadingFilePrefix'); };
-            if (file.name.endsWith('.xlsx')) { reader.readAsArrayBuffer(file); } else { reader.readAsText(file); }
-        }
-
-        function applyDateFilter() {
-            const errorMessage = document.getElementById('errorMessage'); errorMessage.textContent = '';
-            if (!originalChartData.outdoor && !originalChartData.indoor && !originalChartData.default) { errorMessage.textContent = t('pleaseUploadData'); return; }
-            displayChartData = { outdoor: null, indoor: null, default: null };
-            const filterDataset = (dataToFilter) => {
-                if (!dataToFilter || dataToFilter.length < 2) return null;
-                const filteredData = [dataToFilter[0]];
-                const headers = dataToFilter[0]; const colIndices = getColumnIndices(headers); const dateColIndex = colIndices.date;
-                if (dateColIndex === undefined) { return dataToFilter; }
-                if (selectedDates.size === 0) { return dataToFilter; }
-                for (let i = 1; i < dataToFilter.length; i++) {
-                    const row = dataToFilter[i]; const rowDate = parseDateTimeString(row[dateColIndex]);
-                    if (rowDate && !isNaN(rowDate.getTime())) { if (selectedDates.has(formatDateToYYYYMMDD(rowDate))) { filteredData.push(row); } }
                 }
-                return filteredData;
-            };
-            if (originalChartData.outdoor) { displayChartData.outdoor = filterDataset(originalChartData.outdoor); }
-            if (originalChartData.indoor) { displayChartData.indoor = filterDataset(originalChartData.indoor); }
-            if (originalChartData.default) { displayChartData.default = filterDataset(originalChartData.default); }
-            let anyDataPresent = (displayChartData.outdoor && displayChartData.outdoor.length > 1) || (displayChartData.indoor && displayChartData.indoor.length > 1) || (displayChartData.default && displayChartData.default.length > 1);
-            if (!anyDataPresent) { errorMessage.textContent = t('noDataForSelectedDates'); }
-            drawAllChartsAndTables();
-        }
+                allAvailableDates.forEach(d => selectedDates.add(d));
 
-        function drawAllChartsAndTables() {
-            clearAllDisplays();
-            drawAggregatedPowerConsumptionChart();
-            drawSummaryTable();
-            drawPeakOffPeakPieChart();
-            drawDetailedPowerConsumptionChart();
-            drawPowerConsumptionTimeSeriesChart();
-            drawDailyPowerConsumptionChart();
-            drawPeakOffPeakNormalTable();
-            drawIndoorOperationTimeChart();
-            drawIndoorNightOperationChart();
-            drawIndoorNightOperationTable();
-            drawIndoorThermostatOnChart();
-            drawExcessiveCoolingChart();
-            drawIndoorHourlyOperationTable();
-        }
-
-        function parseCSV(csvContent) {
-            const rows = csvContent.split('\n').filter(row => row.trim() !== ''); if (rows.length < 8) { throw new Error("File CSV phải có ít nhất 8 dòng."); }
-            const projectName = (rows[0].split(',')[1] || 'N/A').trim(); const reportTime = (rows[3].split(',')[1] || 'N/A').trim();
-            const row6 = rows[5].split(',').map(h => h.trim()); const row7 = rows[6].split(',').map(h => h.trim()); const combinedHeader = [];
-            const headerLength = Math.max(row6.length, row7.length);
-            for (let i = 0; i < headerLength; i++) { const header6 = (row6[i] || "").trim(); const header7 = (row7[i] || "").trim(); combinedHeader.push(header6 !== "" ? header6 : header7); }
-            const data = [combinedHeader];
-            for (let i = 7; i < rows.length; i++) { const values = rows[i].split(',').map(item => item.trim()); if (values.length === combinedHeader.length) { data.push(values); } }
-            return { data: data.length > 1 ? data : null, metadata: { projectName, reportTime } };
-        }
-
-        function parseJSON(jsonContent) {
-            const jsonData = JSON.parse(jsonContent);
-            if (!Array.isArray(jsonData) || jsonData.length === 0) { throw new Error("Dữ liệu JSON không phải là mảng hoặc trống."); }
-            if (typeof jsonData[0] === 'object' && !Array.isArray(jsonData[0])) {
-                const headers = Object.keys(jsonData[0]); const data = [headers];
-                jsonData.forEach(item => { data.push(headers.map(header => item[header])); });
-                return { data: data, metadata: { projectName: 'N/A', reportTime: 'N/A' } };
-            } else if (Array.isArray(jsonData[0])) {
-                if (jsonData.length < 8) { throw new Error("JSON có ít hơn 8 hàng."); }
-                const projectName = jsonData[0]?.[1] || 'N/A'; const reportTime = jsonData[3]?.[1] || 'N/A';
-                const row6 = jsonData[5]; const row7 = jsonData[6]; const combinedHeader = [];
-                const headerLength = Math.max(row6.length, row7.length);
-                for (let i = 0; i < headerLength; i++) { const header6 = (row6[i] || "").toString().trim(); const header7 = (row7[i] || "").toString().trim(); combinedHeader.push(header6 !== "" ? header6 : header7); }
-                const dataRows = jsonData.slice(7); const finalData = [combinedHeader, ...dataRows];
-                return { data: finalData.length > 1 ? finalData : null, metadata: { projectName, reportTime } };
-            } else { throw new Error("Định dạng JSON không hợp lệ."); }
-        }
-
-        function parseXLSX(fileContent) {
-            // Accept ArrayBuffer or binary string; SheetJS can parse either.
-            let workbook;
-            try {
-                if (fileContent instanceof ArrayBuffer) {
-                    workbook = XLSX.read(new Uint8Array(fileContent), { type: 'array' });
+                if (allAvailableDates.size > 0) {
+                    // FIX: parse as local time by appending T00:00:00 to avoid UTC offset issues
+                    const first = new Date(Array.from(allAvailableDates).sort()[0] + 'T00:00:00');
+                    currentCalendarMonth = first.getMonth();
+                    currentCalendarYear  = first.getFullYear();
                 } else {
-                    workbook = XLSX.read(fileContent, { type: 'binary' });
+                    const now = new Date();
+                    currentCalendarMonth = now.getMonth();
+                    currentCalendarYear  = now.getFullYear();
                 }
-            } catch (e) {
-                // fallback to reading as binary
-                workbook = XLSX.read(fileContent, { type: 'binary' });
+                updateReportHeader(); updateSelectedDatesSummary(); applyDateFilter();
+            } catch (err) {
+                errorEl.textContent = t('errorReadingFilePrefix') + ' ' + err.message;
+                console.error('File processing error:', err);
             }
-            const parsedResult = {};
-            const processSheet = (worksheet) => {
-                const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" }); if (sheetData.length < 8) { return null; }
-                const projectName = sheetData[0]?.[1] || 'N/A'; const reportTime = sheetData[3]?.[1] || 'N/A';
-                const row6 = sheetData[5]; const row7 = sheetData[6]; const combinedHeader = [];
-                const headerLength = Math.max(row6.length, row7.length);
-                for (let i = 0; i < headerLength; i++) { const header6 = (row6[i] || "").toString().trim(); const header7 = (row7[i] || "").toString().trim(); combinedHeader.push(header6 !== "" ? header6 : header7); }
-                const dataRows = sheetData.slice(7); const finalData = [combinedHeader, ...dataRows];
-                return { data: finalData.length > 1 ? finalData : null, metadata: { projectName, reportTime } };
-            };
-            let metadataFound = false;
-            for (const sheetName of workbook.SheetNames) {
-                 const worksheet = workbook.Sheets[sheetName]; const result = processSheet(worksheet);
-                 if (result && result.data) {
-                     const lowerCaseSheetName = sheetName.toLowerCase();
-                     if(lowerCaseSheetName === 'outdoor' || lowerCaseSheetName === 'indoor'){ parsedResult[lowerCaseSheetName] = result.data; }
-                     else if (!parsedResult.default) { parsedResult.default = result.data; }
-                     if (!metadataFound) { parsedResult.metadata = result.metadata; metadataFound = true; }
-                 }
-            }
-            return parsedResult;
+        };
+        lowerFileName.endsWith('.xlsx') ? reader.readAsArrayBuffer(file) : reader.readAsText(file);
+    }
+
+    function applyDateFilter() {
+        const errorEl = document.getElementById('errorMessage');
+        errorEl.textContent = '';
+        if (!originalChartData.outdoor && !originalChartData.indoor && !originalChartData.default) {
+            errorEl.textContent = t('pleaseUploadData'); return;
         }
+        displayChartData = { outdoor: null, indoor: null, default: null };
+        const filterDataset = (src) => {
+            if (!src || src.length < 2) return null;
+            const ci = getColumnIndices(src[0]);
+            if (ci.date === undefined || selectedDates.size === 0) return src;
+            return [src[0], ...src.slice(1).filter(row => {
+                const d = parseDateTimeString(row[ci.date]);
+                return d && selectedDates.has(formatDateToYYYYMMDD(d));
+            })];
+        };
+        if (originalChartData.outdoor) displayChartData.outdoor = filterDataset(originalChartData.outdoor);
+        if (originalChartData.indoor)  displayChartData.indoor  = filterDataset(originalChartData.indoor);
+        if (originalChartData.default) displayChartData.default = filterDataset(originalChartData.default);
+        const anyData = Object.values(displayChartData).some(d => d && d.length > 1);
+        if (!anyData) errorEl.textContent = t('noDataForSelectedDates');
+        drawAllChartsAndTables();
+    }
 
-        function openDatePickerModal() { document.getElementById('datePickerModal').classList.remove('hidden'); renderCalendar(currentCalendarMonth, currentCalendarYear); }
-        function closeDatePickerModal() { document.getElementById('datePickerModal').classList.add('hidden'); }
-        function changeMonth(delta) { currentCalendarMonth += delta; if (currentCalendarMonth > 11) { currentCalendarMonth = 0; currentCalendarYear++; } else if (currentCalendarMonth < 0) { currentCalendarMonth = 11; currentCalendarYear--; } renderCalendar(currentCalendarMonth, currentCalendarYear); }
-        function renderCalendar(month, year) {
-            const calendarDaysDiv = document.getElementById('calendarDays'); calendarDaysDiv.innerHTML = '';
-            const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
-            document.getElementById('currentMonthYear').textContent = `${monthNames[month]} ${year}`;
-            const firstDayOfMonth = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const startDayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
-            for (let i = 0; i < startDayOffset; i++) { calendarDaysDiv.appendChild(document.createElement('div')); }
-            for (let i = 1; i <= daysInMonth; i++) {
-                const dayDiv = document.createElement('div'); dayDiv.classList.add('calendar-day'); dayDiv.textContent = i;
-                const date = new Date(year, month, i); const formattedDate = formatDateToYYYYMMDD(date);
-                const today = new Date(); if (date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear()) { dayDiv.classList.add('today'); }
-                if (allAvailableDates.has(formattedDate)) {
-                    dayDiv.dataset.date = formattedDate;
-                    if (selectedDates.has(formattedDate)) { dayDiv.classList.add('selected'); }
-                    dayDiv.addEventListener('click', () => toggleDateSelection(formattedDate, dayDiv));
-                } else { dayDiv.classList.add('disabled'); }
-                calendarDaysDiv.appendChild(dayDiv);
-            }
+    // ─── Parsers ──────────────────────────────────────────────────────────────
+    function parseSheetRows(rows) {
+        if (rows.length < 8) return null;
+        const projectName = (rows[0]?.[1] || 'N/A').toString().trim();
+        const reportTime  = (rows[3]?.[1] || 'N/A').toString().trim();
+        const row6 = rows[5], row7 = rows[6];
+        const len = Math.max(row6.length, row7.length);
+        const header = [];
+        for (let i = 0; i < len; i++) {
+            const h6 = (row6[i]||'').toString().trim(), h7 = (row7[i]||'').toString().trim();
+            header.push(h6 !== '' ? h6 : h7);
         }
-        function toggleDateSelection(dateStr, element) { if (selectedDates.has(dateStr)) { selectedDates.delete(dateStr); element.classList.remove('selected'); } else { selectedDates.add(dateStr); element.classList.add('selected'); } }
-        function applyDateSelection() { applyDateFilter(); updateSelectedDatesSummary(); closeDatePickerModal(); }
-        function clearDateFilter() { selectedDates.clear(); allAvailableDates.forEach(date => selectedDates.add(date)); applyDateFilter(); updateSelectedDatesSummary(); if (!document.getElementById('datePickerModal').classList.contains('hidden')) { renderCalendar(currentCalendarMonth, currentCalendarYear); } }
-        function updateSelectedDatesSummary() {
-            if (!selectedDatesSummaryElement) { selectedDatesSummaryElement = document.getElementById('selectedDatesSummary'); if (!selectedDatesSummaryElement) return; }
-            if (selectedDates.size === allAvailableDates.size && allAvailableDates.size > 0) { selectedDatesSummaryElement.textContent = (currentLang === 'vi') ? `Ngày được chọn: Tất cả (${selectedDates.size} ngày)` : `Selected dates: All (${selectedDates.size} days)`; }
-            else if (selectedDates.size === 0) { selectedDatesSummaryElement.textContent = (currentLang === 'vi') ? `Ngày được chọn: Không có` : `Selected dates: None`; }
-            else { const sortedSelectedDates = Array.from(selectedDates).sort(); if (sortedSelectedDates.length <= 5) { selectedDatesSummaryElement.textContent = (currentLang === 'vi') ? `Ngày được chọn: ${sortedSelectedDates.map(d => new Date(d).toLocaleDateString('vi-VN')).join(', ')}` : `Selected dates: ${sortedSelectedDates.map(d => new Date(d).toLocaleDateString()).join(', ')}`; } else { selectedDatesSummaryElement.textContent = (currentLang === 'vi') ? `Ngày được chọn: ${selectedDates.size} ngày` : `Selected dates: ${selectedDates.size} days`; } }
+        const data = [header, ...rows.slice(7)];
+        return data.length > 1 ? { data, metadata: { projectName, reportTime } } : null;
+    }
+
+    function parseCSV(content) {
+        // Use SheetJS to handle quoted fields correctly
+        const wb = XLSX.read(content, { type: 'string' });
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+        const result = parseSheetRows(rows);
+        if (!result) throw new Error(currentLang === 'vi' ? 'File CSV phải có ít nhất 8 dòng.' : 'CSV must have at least 8 rows.');
+        return result;
+    }
+
+    function parseJSON(content) {
+        const json = JSON.parse(content);
+        if (!Array.isArray(json) || json.length === 0) throw new Error('JSON không hợp lệ hoặc trống.');
+        if (typeof json[0] === 'object' && !Array.isArray(json[0])) {
+            const headers = Object.keys(json[0]);
+            return { data: [headers, ...json.map(item => headers.map(h => item[h]))], metadata: { projectName: 'N/A', reportTime: 'N/A' } };
         }
+        if (Array.isArray(json[0])) {
+            const result = parseSheetRows(json);
+            if (!result) throw new Error('JSON có ít hơn 8 hàng.');
+            return result;
+        }
+        throw new Error('Định dạng JSON không hợp lệ.');
+    }
 
-        // Print helpers: beforeprint/afterprint handlers to resize chart containers and redraw charts and to add header/footer content
-        function setupPrintRedraw() {
-            const chartIds = [
-                'systemPowerChartActual',
-                'peakOffPeakPieChart_div',
-                'detailedPowerConsumptionChart_div',
-                'powerConsumptionTimeSeriesChart_div',
-                'dailyPowerConsumptionChart_div',
-                'indoorOperationTimeChart_div',
-                'indoorNightOperationChart_div_Chart',
-                'indoorThermostatOnChart_div',
-                'excessiveCoolingChart_div'
-            ];
-
-            // Keep original inline heights to restore after print
-            const originalHeights = {};
-            const printHeader = document.getElementById('printHeader');
-            const printFooter = document.getElementById('printFooter');
-
-            function beforePrint() {
-                // Update and show print header/footer content
-                try {
-                    const titleEl = document.getElementById('printHeaderTitle');
-                    const metaEl = document.getElementById('printHeaderMeta');
-                    const footerLeft = document.getElementById('printFooterLeft');
-                    const footerCenter = document.getElementById('printFooterCenter');
-                    const footerRight = document.getElementById('printFooterRight');
-
-                    const project = reportMetadata?.projectName || (currentLang === 'vi' ? 'Chưa tải dữ liệu' : 'Not loaded');
-                    const time = reportMetadata?.reportTime || (currentLang === 'vi' ? 'Chưa tải dữ liệu' : 'Not loaded');
-
-                    if (titleEl) titleEl.textContent = t('reportTitle');
-                    if (metaEl) metaEl.textContent = `${t('projectLabel')} ${project} — ${t('reportTimeLabel')} ${time}`;
-                    if (footerLeft) footerLeft.textContent = (currentLang === 'vi') ? 'Báo cáo tự động' : 'Generated report';
-                    if (footerCenter) footerCenter.textContent = ''; // optional center text
-                    if (footerRight) footerRight.textContent = (currentLang === 'vi') ? 'Trang' : 'Page';
-
-                    // Show header/footer (they are visible only in print by CSS; set display to block to allow js-measure in some browsers)
-                    if (printHeader) printHeader.style.display = 'block';
-                    if (printFooter) printFooter.style.display = 'flex';
-                } catch (e) {
-                    console.warn('Error preparing print header/footer:', e);
-                }
-
-                // store original heights and force consistent print height
-                chartIds.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (!el) return;
-                    originalHeights[id] = el.style.height || el.getAttribute('data-original-height') || '';
-                    el.setAttribute('data-original-height', originalHeights[id]);
-                    // set standardized print height
-                    el.style.height = '360px';
-                });
-
-                // add print classes to main containers so they reserve header/footer space
-                document.querySelectorAll('.main-container').forEach(el => {
-                    el.classList.add('print-after-header', 'print-before-footer');
-                });
-
-                // small delay then redraw charts to ensure correct sizing
-                setTimeout(() => {
-                    try { drawAllChartsAndTables(); } catch(e) { console.warn('Redraw before print failed', e); }
-                }, 250);
-            }
-
-            function afterPrint() {
-                // restore original heights
-                chartIds.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (!el) return;
-                    const original = el.getAttribute('data-original-height') || '';
-                    if (original) el.style.height = original;
-                    else el.style.height = '';
-                    el.removeAttribute('data-original-height');
-                });
-
-                // hide header/footer
-                if (printHeader) printHeader.style.display = 'none';
-                if (printFooter) printFooter.style.display = 'none';
-
-                // remove print classes
-                document.querySelectorAll('.main-container').forEach(el => {
-                    el.classList.remove('print-after-header', 'print-before-footer');
-                });
-
-                // redraw back to screen sizes
-                setTimeout(() => {
-                    try { drawAllChartsAndTables(); } catch(e) { console.warn('Redraw after print failed', e); }
-                }, 250);
-            }
-
-            // Modern browsers support beforeprint/afterprint events
-            if (window.matchMedia) {
-                const mediaQueryList = window.matchMedia('print');
-                mediaQueryList.addListener(mql => {
-                    if (mql.matches) beforePrint();
-                    else afterPrint();
-                });
-            }
-            if (window.addEventListener) {
-                window.addEventListener('beforeprint', beforePrint);
-                window.addEventListener('afterprint', afterPrint);
-            } else if (window.attachEvent) { // IE
-                window.attachEvent('onbeforeprint', beforePrint);
-                window.attachEvent('onafterprint', afterPrint);
-            }
-
-            // Also hook the print button to call beforePrint manually for browsers that don't fire it
-            const printBtn = document.getElementById('printBtn');
-            if (printBtn) {
-                printBtn.addEventListener('click', (e) => {
-                    try { beforePrint(); } catch {}
-                    // allow print to happen; afterprint will restore
-                });
+    function parseXLSX(content) {
+        let wb;
+        try {
+            wb = XLSX.read(new Uint8Array(content instanceof ArrayBuffer ? content : new ArrayBuffer(0)), { type: 'array' });
+        } catch {
+            wb = XLSX.read(content, { type: 'binary' });
+        }
+        const result = {};
+        let metaSet = false;
+        for (const sheetName of wb.SheetNames) {
+            const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, defval: '' });
+            const parsed = parseSheetRows(rows);
+            if (parsed?.data) {
+                const key = sheetName.toLowerCase();
+                if (key === 'outdoor' || key === 'indoor') result[key] = parsed.data;
+                else if (!result.default) result.default = parsed.data;
+                if (!metaSet) { result.metadata = parsed.metadata; metaSet = true; }
             }
         }
+        return result;
+    }
 
-        // Load marked.js library to display Markdown
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-        document.head.appendChild(script);
+    // ─── Date picker ──────────────────────────────────────────────────────────
+    function openDatePickerModal()  { document.getElementById('datePickerModal').classList.remove('hidden'); renderCalendar(currentCalendarMonth, currentCalendarYear); }
+    function closeDatePickerModal() { document.getElementById('datePickerModal').classList.add('hidden'); }
+    function changeMonth(delta) {
+        currentCalendarMonth += delta;
+        if (currentCalendarMonth > 11) { currentCalendarMonth = 0; currentCalendarYear++; }
+        else if (currentCalendarMonth < 0) { currentCalendarMonth = 11; currentCalendarYear--; }
+        renderCalendar(currentCalendarMonth, currentCalendarYear);
+    }
+
+    function renderCalendar(month, year) {
+        const grid = document.getElementById('calendarDays'); grid.innerHTML = '';
+        const monthNames = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
+        document.getElementById('currentMonthYear').textContent = `${monthNames[month]} ${year}`;
+        const firstDow = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const offset = firstDow === 0 ? 6 : firstDow - 1;
+        for (let i = 0; i < offset; i++) grid.appendChild(document.createElement('div'));
+        const today = new Date();
+        for (let i = 1; i <= daysInMonth; i++) {
+            const div = document.createElement('div'); div.classList.add('calendar-day'); div.textContent = i;
+            const dateStr = formatDateToYYYYMMDD(new Date(year, month, i));
+            if (i===today.getDate() && month===today.getMonth() && year===today.getFullYear()) div.classList.add('today');
+            if (allAvailableDates.has(dateStr)) {
+                div.dataset.date = dateStr;
+                if (selectedDates.has(dateStr)) div.classList.add('selected');
+                div.addEventListener('click', () => {
+                    selectedDates.has(dateStr) ? selectedDates.delete(dateStr) : selectedDates.add(dateStr);
+                    div.classList.toggle('selected');
+                });
+            } else { div.classList.add('disabled'); }
+            grid.appendChild(div);
+        }
+    }
+
+    function applyDateSelection()  { applyDateFilter(); updateSelectedDatesSummary(); closeDatePickerModal(); }
+    function clearDateFilter()     { selectedDates.clear(); allAvailableDates.forEach(d => selectedDates.add(d)); applyDateFilter(); updateSelectedDatesSummary(); if (!document.getElementById('datePickerModal').classList.contains('hidden')) renderCalendar(currentCalendarMonth, currentCalendarYear); }
+
+    function updateSelectedDatesSummary() {
+        if (!selectedDatesSummaryElement) selectedDatesSummaryElement = document.getElementById('selectedDatesSummary');
+        if (!selectedDatesSummaryElement) return;
+        const vi = currentLang === 'vi';
+        if (selectedDates.size === allAvailableDates.size && allAvailableDates.size > 0) {
+            selectedDatesSummaryElement.textContent = vi ? `Ngày được chọn: Tất cả (${selectedDates.size} ngày)` : `Selected dates: All (${selectedDates.size} days)`;
+        } else if (selectedDates.size === 0) {
+            selectedDatesSummaryElement.textContent = vi ? 'Ngày được chọn: Không có' : 'Selected dates: None';
+        } else {
+            const sorted = Array.from(selectedDates).sort();
+            if (sorted.length <= 5) {
+                const labels = sorted.map(d => new Date(d+'T00:00:00').toLocaleDateString(vi ? 'vi-VN' : undefined));
+                selectedDatesSummaryElement.textContent = vi ? `Ngày được chọn: ${labels.join(', ')}` : `Selected dates: ${labels.join(', ')}`;
+            } else {
+                selectedDatesSummaryElement.textContent = vi ? `Ngày được chọn: ${selectedDates.size} ngày` : `Selected dates: ${selectedDates.size} days`;
+            }
+        }
+    }
+
+    // ─── Print ────────────────────────────────────────────────────────────────
+    const PRINT_CHART_IDS = [
+        'systemPowerChartActual','peakOffPeakPieChart_div','detailedPowerConsumptionChart_div',
+        'powerConsumptionTimeSeriesChart_div','dailyPowerConsumptionChart_div',
+        'indoorOperationTimeChart_div','indoorNightOperationChart_div_Chart',
+        'indoorThermostatOnChart_div','excessiveCoolingChart_div'
+    ];
+    const originalHeights = {};
+    let isPreparingPrint = false;
+
+    function beforePrintHandler() {
+        if (isPreparingPrint) return;
+        isPreparingPrint = true;
+        try {
+            const project = reportMetadata?.projectName || (currentLang==='vi' ? 'Chưa tải dữ liệu' : 'Not loaded');
+            const time    = reportMetadata?.reportTime  || (currentLang==='vi' ? 'Chưa tải dữ liệu' : 'Not loaded');
+            const titleEl  = document.getElementById('printHeaderTitle');
+            const metaEl   = document.getElementById('printHeaderMeta');
+            const footLeft = document.getElementById('printFooterLeft');
+            const footRight = document.getElementById('printFooterRight');
+            if (titleEl)  titleEl.textContent  = t('reportTitle');
+            if (metaEl)   metaEl.textContent   = `${t('projectLabel')} ${project} — ${t('reportTimeLabel')} ${time}`;
+            if (footLeft) footLeft.textContent = currentLang==='vi' ? 'Báo cáo tự động' : 'Generated report';
+            if (footRight) footRight.textContent = currentLang==='vi' ? 'Trang' : 'Page';
+            document.getElementById('printHeader').style.display = 'block';
+            document.getElementById('printFooter').style.display = 'flex';
+        } catch(e) { console.warn('Print header/footer error:', e); }
+
+        PRINT_CHART_IDS.forEach(id => {
+            const el = document.getElementById(id); if (!el) return;
+            originalHeights[id] = el.style.height || '';
+            el.style.height = '360px';
+        });
+        document.querySelectorAll('.main-container').forEach(el => el.classList.add('print-after-header','print-before-footer'));
+        setTimeout(() => { try { drawAllChartsAndTables(); } catch(e) { console.warn('Print redraw failed', e); } }, 250);
+    }
+
+    function afterPrintHandler() {
+        if (!isPreparingPrint) return;
+        PRINT_CHART_IDS.forEach(id => {
+            const el = document.getElementById(id); if (!el) return;
+            el.style.height = originalHeights[id] || '';
+        });
+        document.getElementById('printHeader').style.display = 'none';
+        document.getElementById('printFooter').style.display = 'none';
+        document.querySelectorAll('.main-container').forEach(el => el.classList.remove('print-after-header','print-before-footer'));
+        isPreparingPrint = false;
+        setTimeout(() => { try { drawAllChartsAndTables(); } catch(e) { console.warn('After-print redraw failed', e); } }, 250);
+    }
+
+    function setupPrintRedraw() {
+        window.addEventListener('beforeprint', beforePrintHandler);
+        window.addEventListener('afterprint',  afterPrintHandler);
+    }
 
     </script>
 </body>
