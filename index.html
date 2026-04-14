@@ -11,30 +11,157 @@
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #F1F2F6;
+            background: #ffffff;
             padding: 24px;
             box-sizing: border-box;
-            color: #2F3542;
+            color: #1f2937;
+        }
+        .dashboard-shell {
+            width: min(1440px, 100%);
+            margin: 0 auto;
         }
         .main-container {
-            width: 95%;
-            max-width: 1200px;
+            width: 100%;
             background-color: #FFFFFF;
-            padding: 24px 32px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 24px;
-            border: 1px solid #dfe4ea;
+            padding: 22px 24px;
+            border-radius: 18px;
+            box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
             page-break-inside: avoid;
             break-inside: avoid;
         }
         .main-container.print-after-header { margin-top: 36mm; }
         .main-container.print-before-footer { margin-bottom: 18mm; }
+
+        .hero-panel {
+            background: linear-gradient(135deg, #ffffff 0%, #f7faff 100%);
+            border: 1px solid #dbe7f3;
+            padding: 28px 32px;
+        }
+        .hero-topline {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 10pt;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #2563eb;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            padding: 8px 14px;
+            margin-bottom: 16px;
+        }
+        .hero-meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+        .meta-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+        .meta-label {
+            font-size: 9pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+        .meta-value {
+            font-size: 12pt;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .section-block {
+            margin-top: 28px;
+            margin-bottom: 8px;
+        }
+        .section-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: end;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .section-kicker {
+            font-size: 9pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #2563eb;
+            margin-bottom: 6px;
+        }
+        .section-title {
+            font-size: 24px;
+            line-height: 1.2;
+            color: #0f172a;
+            margin: 0;
+        }
+        .section-description {
+            font-size: 11pt;
+            color: #64748b;
+            margin: 8px 0 0 0;
+            max-width: 760px;
+        }
+        .section-badge {
+            align-self: center;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: #f8fafc;
+            border: 1px solid #dbe4ee;
+            color: #475569;
+            font-size: 10pt;
+            font-weight: 600;
+        }
+        .section-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 20px;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+        .kpi-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border: 1px solid #dbe7f3;
+            border-radius: 18px;
+            padding: 18px 18px 16px;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+        }
+        .kpi-label {
+            font-size: 9pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+        .kpi-value {
+            font-size: 24px;
+            line-height: 1.1;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+        .kpi-subtitle {
+            font-size: 10pt;
+            color: #64748b;
+        }
+        .span-12, .span-8, .span-6, .span-4 { grid-column: 1 / -1; }
 
         h1, h2, h3 { margin: 0; padding: 0; font-weight: 700; color: #0A3D62; }
         .report-header h1, .app-title { font-size: 24pt; margin-bottom: 8px; }
@@ -130,12 +257,12 @@
         button.secondary:hover, #closeDatePicker:hover { background-color: #dfe4ea; }
 
         .selected-dates-summary {
-            background-color: #e8f4fd;
-            border: 1px solid #3498DB;
-            padding: 8px 12px;
-            border-radius: 6px;
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 10px 14px;
+            border-radius: 12px;
             font-size: 10pt;
-            color: #0A3D62;
+            color: #1d4ed8;
             text-align: center;
         }
         .error-message { color: #E74C3C; font-weight: 600; font-size: 10pt; }
@@ -200,10 +327,27 @@
 
         .print-header, .print-footer { display: none; }
 
+        @media (max-width: 1024px) {
+            .span-8, .span-6, .span-4 { grid-column: span 12; }
+            .hero-meta { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 720px) {
+            body { padding: 14px; }
+            .main-container { padding: 18px; border-radius: 16px; }
+            .controls-container, .control-group { flex-direction: column; align-items: stretch; }
+            .section-title { font-size: 20px; }
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+
         @page { size: A4 portrait; margin: 12mm 10mm; }
 
         @media print {
             body { background: #fff; color: #000; margin: 0; font-size: 10pt; line-height: 1.4; }
+            .dashboard-shell { width: 100%; }
+            .section-header, .section-description, .section-badge, .section-kicker, .kpi-grid { display: none !important; }
+            .section-grid { display: block; }
 
             .print-header, .print-footer {
                 display: block;
@@ -245,14 +389,19 @@
             }
             .print-page-break { page-break-before: always; break-before: page; }
 
-            #systemPowerChartActual, #peakOffPeakPieChart_div,
+            #systemPowerChartActual,
             #detailedPowerConsumptionChart_div, #powerConsumptionTimeSeriesChart_div,
             #dailyPowerConsumptionChart_div, #indoorOperationTimeChart_div,
             #indoorNightOperationChart_div_Chart, #indoorThermostatOnChart_div,
             #excessiveCoolingChart_div {
                 width: 100% !important;
-                height: 360px !important;
-                min-height: 360px !important;
+                height: 380px !important;
+                min-height: 380px !important;
+            }
+            #peakOffPeakPieChart_div {
+                width: 100% !important;
+                height: 340px !important;
+                min-height: 340px !important;
             }
             .data-table { font-size: 9pt; }
             .chart-title { margin-bottom: 8px; padding-bottom: 6px; }
@@ -261,10 +410,11 @@
     </style>
 </head>
 <body>
+    <div class="dashboard-shell">
     <div class="print-header" aria-hidden="true" id="printHeader" style="display:none;">
         <div style="max-width:1200px; margin: 0 auto;">
-            <div class="title" id="printHeaderTitle">BÁO CÁO PHÂN TÍCH HIỆU SUẤT HỆ THỐNG VRV</div>
-            <div class="meta" id="printHeaderMeta">Tên công trình: Chưa tải dữ liệu — Thời gian báo cáo: Chưa tải dữ liệu</div>
+            <div class="title" id="printHeaderTitle">B??O C??O PH??N T??CH HI???U SU???T H??? TH???NG VRV</div>
+            <div class="meta" id="printHeaderMeta">T??n c??ng tr??nh: Ch??a t???i d??? li???u ??? Th???i gian b??o c??o: Ch??a t???i d??? li???u</div>
         </div>
     </div>
     <div class="print-footer" aria-hidden="true" id="printFooter" style="display:none;">
@@ -273,130 +423,188 @@
         <div id="printFooterRight" class="page-num">Trang</div>
     </div>
 
-    <div class="main-container">
+    <div class="main-container hero-panel">
         <div id="reportHeader" class="report-header">
-            <h1 id="reportTitle">BÁO CÁO PHÂN TÍCH HIỆU SUẤT HỆ THỐNG VRV</h1>
-            <h2 id="reportProjectName">Tên công trình: Chưa tải dữ liệu</h2>
-            <h3 id="reportDate">Thời gian báo cáo: Chưa tải dữ liệu</h3>
+            <div class="hero-topline">Power BI Style Dashboard</div>
+            <h1 id="reportTitle">B??O C??O PH??N T??CH HI???U SU???T H??? TH???NG VRV</h1>
+            <p class="section-description">Clean white dashboard layout with two focused analysis zones: power consumption and indoor unit performance.</p>
+            <div class="hero-meta">
+                <div class="meta-card">
+                    <div class="meta-label">Project</div>
+                    <div class="meta-value" id="reportProjectName">T??n c??ng tr??nh: Ch??a t???i d??? li???u</div>
+                </div>
+                <div class="meta-card">
+                    <div class="meta-label">Report Time</div>
+                    <div class="meta-value" id="reportDate">Th???i gian b??o c??o: Ch??a t???i d??? li???u</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="main-container">
         <div class="controls-container">
             <div class="control-group">
-                <label id="fileInputLabel" for="fileInput">Tệp dữ liệu (CSV/JSON/XLSX):</label>
+                <label id="fileInputLabel" for="fileInput">T???p d??? li???u (CSV/JSON/XLSX):</label>
                 <input type="file" id="fileInput" accept=".csv, .json, .xlsx">
-                <button id="uploadAnalyzeBtn" onclick="handleFileImport()">Tải &amp; Phân tích</button>
+                <button id="uploadAnalyzeBtn" onclick="handleFileImport()">T???i &amp; Ph??n t??ch</button>
             </div>
             <div class="control-group">
-                <button id="openDatePicker">Chọn Ngày</button>
-                <button id="clearDateFilter" class="secondary">Xem Tất Cả Ngày</button>
+                <button id="openDatePicker">Ch???n Ng??y</button>
+                <button id="clearDateFilter" class="secondary">Xem T???t C??? Ng??y</button>
             </div>
             <div class="control-group">
-                <button id="printBtn" class="secondary">In Báo cáo 🖨️</button>
+                <button id="printBtn" class="secondary">In B??o c??o ???????</button>
             </div>
             <div class="control-group">
-                <label id="languageLabel" for="toggleLangBtn">Ngôn ngữ:</label>
+                <label id="languageLabel" for="toggleLangBtn">Ng??n ng???:</label>
                 <button id="toggleLangBtn" class="secondary">EN</button>
             </div>
         </div>
         <div style="margin-top: 16px; width: 100%; text-align: center;">
-            <p id="selectedDatesSummary" class="selected-dates-summary">Ngày được chọn: Tất cả</p>
+            <p id="selectedDatesSummary" class="selected-dates-summary">Ng??y ???????c ch???n: T???t c???</p>
             <span id="errorMessage" class="error-message"></span>
         </div>
     </div>
 
-    <div id="systemPowerChartWrapper" class="main-container print-page-break">
-        <h2 class="chart-title">Tổng quan Điện năng Tiêu thụ Toàn Hệ thống</h2>
-        <div id="systemPowerChartActual" style="width:100%;height:400px;">Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.</div>
-    </div>
-
-    <div id="summaryTable_div_container" class="main-container">
-        <h2 class="chart-title">Bảng Tổng hợp Dữ liệu Dàn nóng</h2>
-        <div id="summaryTable_div">Vui lòng tải lên file dữ liệu để hiển thị bảng.</div>
-    </div>
-
-    <div id="peakOffPeakPieChart_div_container" class="main-container print-page-break">
-        <h2 class="chart-title">Tỷ trọng Điện năng Tiêu thụ theo Khung Giờ</h2>
-        <div id="peakOffPeakPieChart_div" style="width:100%;height:400px;">Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.</div>
-    </div>
-
-    <div id="detailedPowerConsumptionChart_div_container" class="main-container print-page-break">
-        <h2 class="chart-title">Chi tiết Điện năng Tiêu thụ theo Dàn nóng &amp; Khung giờ</h2>
-        <div id="detailedPowerConsumptionChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.</div>
-    </div>
-
-    <div id="powerConsumptionTimeSeriesChart_div_container" class="main-container print-page-break">
-        <h2 class="chart-title">Điện năng Tiêu thụ &amp; Nhiệt độ Ngoài trời theo Thời gian</h2>
-        <div id="powerConsumptionTimeSeriesChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.</div>
-    </div>
-
-    <div id="dailyPowerConsumptionChart_div_container" class="main-container print-page-break">
-        <h2 class="chart-title">Điện năng Tiêu thụ &amp; Nhiệt độ Ngoài trời theo Ngày</h2>
-        <div id="dailyPowerConsumptionChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu để hiển thị biểu đồ.</div>
-    </div>
-
-    <div id="peakOffPeakTable_div_container" class="main-container">
-        <h2 class="chart-title">Bảng Phân tích Điện năng theo Khung giờ</h2>
-        <div id="peakOffPeakTable_div">Vui lòng tải lên file dữ liệu để hiển thị bảng.</div>
-    </div>
-
-    <div id="indoorOperationTimeChart_div_container" class="main-container print-page-break">
-        <h2 class="chart-title">Thời gian Hoạt động Dàn lạnh theo Nhiệt độ Cài đặt</h2>
-        <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
-            <label for="indoorOperationTopN" id="indoorOperationTopNLabel">Hiển thị Top:</label>
-            <input type="number" id="indoorOperationTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
-            <label id="indoorOperationShowAllLabel"><input type="checkbox" id="indoorOperationShowAll" checked> Hiển thị tất cả</label>
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Total kWh</div>
+            <div class="kpi-value" id="kpiTotalPower">--</div>
+            <div class="kpi-subtitle" id="kpiTotalPowerSub">System energy across filtered data</div>
         </div>
-        <div id="indoorOperationTimeChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Setpoint temperature, Operation Time).</div>
-    </div>
-
-    <div id="indoorNightOperationChart_div_Chart_container" class="main-container print-page-break">
-        <h2 class="chart-title">Phân bố Thời gian Hoạt động Dàn lạnh (Ngày/Đêm)</h2>
-        <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
-            <label for="indoorNightTopN" id="indoorNightTopNLabel">Hiển thị Top:</label>
-            <input type="number" id="indoorNightTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
-            <label id="indoorNightShowAllLabel"><input type="checkbox" id="indoorNightShowAll" checked> Hiển thị tất cả</label>
+        <div class="kpi-card">
+            <div class="kpi-label">Peak Ratio</div>
+            <div class="kpi-value" id="kpiPeakRatio">--</div>
+            <div class="kpi-subtitle" id="kpiPeakRatioSub">Share of power consumed in peak hours</div>
         </div>
-        <div id="indoorNightOperationChart_div_Chart" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Date, Operation Time).</div>
-    </div>
-
-    <div id="indoorNightOperationTable_div_container" class="main-container">
-        <h2 class="chart-title">Bảng Phân tích Hoạt động Dàn lạnh Ban đêm (22:00 - 07:00)</h2>
-        <div id="indoorNightOperationTable_div">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Date, Operation Time).</div>
-    </div>
-
-    <div id="indoorThermostatOnChart_div_container" class="main-container print-page-break">
-        <h2 class="chart-title">Thời gian Gọi tải Dàn lạnh (Thermostat ON/OFF)</h2>
-        <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
-            <label for="indoorThermostatTopN" id="indoorThermostatTopNLabel">Hiển thị Top:</label>
-            <input type="number" id="indoorThermostatTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
-            <label id="indoorThermostatShowAllLabel"><input type="checkbox" id="indoorThermostatShowAll" checked> Hiển thị tất cả</label>
+        <div class="kpi-card">
+            <div class="kpi-label">Avg Outdoor Temp</div>
+            <div class="kpi-value" id="kpiOutdoorTemp">--</div>
+            <div class="kpi-subtitle" id="kpiOutdoorTempSub">Average filtered outdoor temperature</div>
         </div>
-        <div id="indoorThermostatOnChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Indoor_IntegratedThermoOnTime).</div>
+        <div class="kpi-card">
+            <div class="kpi-label">Top Indoor Unit</div>
+            <div class="kpi-value" id="kpiTopIndoor">--</div>
+            <div class="kpi-subtitle" id="kpiTopIndoorSub">Highest runtime in filtered period</div>
+        </div>
     </div>
 
-    <div id="excessiveCoolingChart_div_container" class="main-container print-page-break">
-        <h2 class="chart-title">Thời gian Hoạt động Làm mát Quá mức (&lt; 22°C)</h2>
-        <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
-            <label for="excessiveCoolingTopN" id="excessiveCoolingTopNLabel">Hiển thị Top:</label>
-            <input type="number" id="excessiveCoolingTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
-            <label id="excessiveCoolingShowAllLabel"><input type="checkbox" id="excessiveCoolingShowAll" checked> Hiển thị tất cả</label>
+    <section class="section-block">
+        <div class="section-header">
+            <div>
+                <div class="section-kicker">Section 01</div>
+                <h2 class="section-title">Power Consumption</h2>
+                <p class="section-description">Track total energy use, time-of-use distribution, and consumption trends for the outdoor units.</p>
+            </div>
+            <div class="section-badge">Power Consumption Analytics</div>
         </div>
-        <div id="excessiveCoolingChart_div" style="width:100%;height:500px;">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Setpoint temperature, Operation Time).</div>
-    </div>
+        <div class="section-grid">
+            <div id="systemPowerChartWrapper" class="main-container print-page-break span-8">
+                <h2 class="chart-title">T???ng quan ??i???n n??ng Ti??u th??? To??n H??? th???ng</h2>
+                <div id="systemPowerChartActual" style="width:100%;height:400px;">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? bi???u ?????.</div>
+            </div>
 
-    <div id="indoorHourlyOperationTable_div_container" class="main-container">
-        <h2 class="chart-title">Bảng Chi tiết Thời gian Hoạt động Dàn lạnh theo Giờ</h2>
-        <div style="margin-top:10px;display:flex;gap:10px;align-items:center;">
-            <label for="nightStart" id="nightStartLabel">Giờ bắt đầu đêm:</label>
-            <input type="number" id="nightStart" min="0" max="23" value="22" style="width:60px;">
-            <label for="nightEnd" id="nightEndLabel">Giờ kết thúc đêm:</label>
-            <input type="number" id="nightEnd" min="0" max="23" value="5" style="width:60px;">
-            <button id="highlightNightBtn" onclick="highlightNightHours()">Tô màu giờ đêm 🌙</button>
+            <div id="peakOffPeakPieChart_div_container" class="main-container print-page-break span-4">
+                <h2 class="chart-title">T??? tr???ng ??i???n n??ng Ti??u th??? theo Khung Gi???</h2>
+                <div id="peakOffPeakPieChart_div" style="width:100%;height:400px;">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? bi???u ?????.</div>
+            </div>
+
+            <div id="summaryTable_div_container" class="main-container span-4">
+                <h2 class="chart-title">B???ng T???ng h???p D??? li???u D??n n??ng</h2>
+                <div id="summaryTable_div">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? b???ng.</div>
+            </div>
+
+            <div id="detailedPowerConsumptionChart_div_container" class="main-container print-page-break span-8">
+                <h2 class="chart-title">Chi ti???t ??i???n n??ng Ti??u th??? theo D??n n??ng &amp; Khung gi???</h2>
+                <div id="detailedPowerConsumptionChart_div" style="width:100%;height:500px;">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? bi???u ?????.</div>
+            </div>
+
+            <div id="powerConsumptionTimeSeriesChart_div_container" class="main-container print-page-break span-6">
+                <h2 class="chart-title">??i???n n??ng Ti??u th??? &amp; Nhi???t ????? Ngo??i tr???i theo Th???i gian</h2>
+                <div id="powerConsumptionTimeSeriesChart_div" style="width:100%;height:500px;">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? bi???u ?????.</div>
+            </div>
+
+            <div id="dailyPowerConsumptionChart_div_container" class="main-container print-page-break span-6">
+                <h2 class="chart-title">??i???n n??ng Ti??u th??? &amp; Nhi???t ????? Ngo??i tr???i theo Ng??y</h2>
+                <div id="dailyPowerConsumptionChart_div" style="width:100%;height:500px;">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? bi???u ?????.</div>
+            </div>
+
+            <div id="peakOffPeakTable_div_container" class="main-container span-12">
+                <h2 class="chart-title">B???ng Ph??n t??ch ??i???n n??ng theo Khung gi???</h2>
+                <div id="peakOffPeakTable_div">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? b???ng.</div>
+            </div>
         </div>
-        <div id="indoorHourlyOperationTable_div">Vui lòng tải lên file dữ liệu và đảm bảo có đủ cột (Indoor Name, Date, Operation Time).</div>
-    </div>
+    </section>
+
+    <section class="section-block">
+        <div class="section-header">
+            <div>
+                <div class="section-kicker">Section 02</div>
+                <h2 class="section-title">Indoor Unit Analysis</h2>
+                <p class="section-description">Focus on indoor unit runtime behavior, night operation ratio, thermostat call time, and excessive cooling patterns.</p>
+            </div>
+            <div class="section-badge">Indoor Unit Analysis</div>
+        </div>
+        <div class="section-grid">
+            <div id="indoorOperationTimeChart_div_container" class="main-container print-page-break span-6">
+                <h2 class="chart-title">Th???i gian Ho???t ?????ng D??n l???nh theo Nhi???t ????? C??i ?????t</h2>
+                <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
+                    <label for="indoorOperationTopN" id="indoorOperationTopNLabel">Hi???n th??? Top:</label>
+                    <input type="number" id="indoorOperationTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
+                    <label id="indoorOperationShowAllLabel"><input type="checkbox" id="indoorOperationShowAll" checked> Hi???n th??? t???t c???</label>
+                </div>
+                <div id="indoorOperationTimeChart_div" style="width:100%;height:500px;">Vui l??ng t???i l??n file d??? li???u v?? ?????m b???o c?? ????? c???t (Indoor Name, Setpoint temperature, Operation Time).</div>
+            </div>
+
+            <div id="indoorNightOperationChart_div_Chart_container" class="main-container print-page-break span-6">
+                <h2 class="chart-title">Ph??n b??? Th???i gian Ho???t ?????ng D??n l???nh (Ng??y/????m)</h2>
+                <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
+                    <label for="indoorNightTopN" id="indoorNightTopNLabel">Hi???n th??? Top:</label>
+                    <input type="number" id="indoorNightTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
+                    <label id="indoorNightShowAllLabel"><input type="checkbox" id="indoorNightShowAll" checked> Hi???n th??? t???t c???</label>
+                </div>
+                <div id="indoorNightOperationChart_div_Chart" style="width:100%;height:500px;">Vui l??ng t???i l??n file d??? li???u v?? ?????m b???o c?? ????? c???t (Indoor Name, Date, Operation Time).</div>
+            </div>
+
+            <div id="indoorThermostatOnChart_div_container" class="main-container print-page-break span-6">
+                <h2 class="chart-title">Th???i gian G???i t???i D??n l???nh (Thermostat ON/OFF)</h2>
+                <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
+                    <label for="indoorThermostatTopN" id="indoorThermostatTopNLabel">Hi???n th??? Top:</label>
+                    <input type="number" id="indoorThermostatTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
+                    <label id="indoorThermostatShowAllLabel"><input type="checkbox" id="indoorThermostatShowAll" checked> Hi???n th??? t???t c???</label>
+                </div>
+                <div id="indoorThermostatOnChart_div" style="width:100%;height:500px;">Vui l??ng t???i l??n file d??? li???u v?? ?????m b???o c?? ????? c???t (Indoor Name, Indoor_IntegratedThermoOnTime).</div>
+            </div>
+
+            <div id="excessiveCoolingChart_div_container" class="main-container print-page-break span-6">
+                <h2 class="chart-title">Th???i gian Ho???t ?????ng L??m m??t Qu?? m???c (&lt; 22??C)</h2>
+                <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
+                    <label for="excessiveCoolingTopN" id="excessiveCoolingTopNLabel">Hi???n th??? Top:</label>
+                    <input type="number" id="excessiveCoolingTopN" min="1" max="50" value="10" style="width:60px;padding:4px;">
+                    <label id="excessiveCoolingShowAllLabel"><input type="checkbox" id="excessiveCoolingShowAll" checked> Hi???n th??? t???t c???</label>
+                </div>
+                <div id="excessiveCoolingChart_div" style="width:100%;height:500px;">Vui l??ng t???i l??n file d??? li???u v?? ?????m b???o c?? ????? c???t (Indoor Name, Setpoint temperature, Operation Time).</div>
+            </div>
+
+            <div id="indoorNightOperationTable_div_container" class="main-container span-12">
+                <h2 class="chart-title">B???ng Ph??n t??ch Ho???t ?????ng D??n l???nh Ban ????m (22:00 - 07:00)</h2>
+                <div id="indoorNightOperationTable_div">Vui l??ng t???i l??n file d??? li???u v?? ?????m b???o c?? ????? c???t (Indoor Name, Date, Operation Time).</div>
+            </div>
+
+            <div id="indoorHourlyOperationTable_div_container" class="main-container span-12">
+                <h2 class="chart-title">B???ng Chi ti???t Th???i gian Ho???t ?????ng D??n l???nh theo Gi???</h2>
+                <div style="margin-top:10px;display:flex;gap:10px;align-items:center;">
+                    <label for="nightStart" id="nightStartLabel">Gi??? b???t ?????u ????m:</label>
+                    <input type="number" id="nightStart" min="0" max="23" value="22" style="width:60px;">
+                    <label for="nightEnd" id="nightEndLabel">Gi??? k???t th??c ????m:</label>
+                    <input type="number" id="nightEnd" min="0" max="23" value="5" style="width:60px;">
+                    <button id="highlightNightBtn" onclick="highlightNightHours()">T?? m??u gi??? ????m ????</button>
+                </div>
+                <div id="indoorHourlyOperationTable_div">Vui l??ng t???i l??n file d??? li???u v?? ?????m b???o c?? ????? c???t (Indoor Name, Date, Operation Time).</div>
+            </div>
+        </div>
+    </section>
+
 
     <div id="datePickerModal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -592,7 +800,7 @@
         document.getElementById('highlightNightBtn').textContent = t('highlightNightBtn');
 
         updateSelectedDatesSummary();
-        drawAllChartsAndTables();
+        if (originalChartData.outdoor || originalChartData.indoor || originalChartData.default) drawAllChartsAndTables();
     }
 
     // ─── State ───────────────────────────────────────────────────────────────
@@ -604,6 +812,9 @@
     let currentCalendarMonth = new Date().getMonth();
     let currentCalendarYear  = new Date().getFullYear();
     let selectedDatesSummaryElement;
+    let dashboardStats = null;
+    const columnIndicesCache = new WeakMap();
+    const indoorNightRowsCache = new WeakMap();
 
     google.charts.setOnLoadCallback(initializeDisplay);
 
@@ -682,11 +893,104 @@
         // yyyy-mm-dd HH:MM:SS
         m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s(\d{1,2}):(\d{1,2}):(\d{1,2})$/);
         if (m) { const d = new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]); if (!isNaN(d)) return d; }
+        // yyyy-mm-dd
+        m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (m) { const d = new Date(+m[1], +m[2]-1, +m[3], 0, 0, 0); if (!isNaN(d)) return d; }
         // fallback
         const d = new Date(str);
         if (!isNaN(d)) return d;
         console.warn(`Could not parse date/time: "${str}"`);
         return null;
+    }
+
+    function formatCompactNumber(value, decimals = 1) {
+        if (!Number.isFinite(value)) return '--';
+        return new Intl.NumberFormat(currentLang === 'vi' ? 'vi-VN' : 'en-US', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        }).format(value);
+    }
+
+    function updateDashboardStats() {
+        const outdoorData = getOutdoorData();
+        const indoorData = displayChartData.indoor;
+        let totalPower = 0;
+        let peakPower = 0;
+        let tempSum = 0;
+        let tempCount = 0;
+        let topIndoorName = '--';
+        let topIndoorHours = 0;
+
+        if (outdoorData && outdoorData.length > 1) {
+            const ci = getColumnIndices(outdoorData[0]);
+            for (let i = 1; i < outdoorData.length; i++) {
+                const row = outdoorData[i];
+                const kw = Number(row[ci.powerconsumption]);
+                if (!isNaN(kw)) totalPower += kw;
+                if (ci.date !== undefined && !isNaN(kw)) {
+                    const d = parseDateTimeString(row[ci.date]);
+                    if (d && getPeakCategory(d) === 'peak') peakPower += kw;
+                }
+                if (ci.outdoortemp_ave !== undefined) {
+                    const temp = Number(row[ci.outdoortemp_ave]);
+                    if (!isNaN(temp)) { tempSum += temp; tempCount++; }
+                }
+            }
+        }
+
+        if (indoorData && indoorData.length > 1) {
+            const ci = getColumnIndices(indoorData[0]);
+            if (ci.indoor_name !== undefined && ci.operation_time !== undefined) {
+                const indoorAgg = new Map();
+                for (let i = 1; i < indoorData.length; i++) {
+                    const row = indoorData[i];
+                    const name = row[ci.indoor_name];
+                    const opTime = Number(row[ci.operation_time]);
+                    if (name && !isNaN(opTime)) {
+                        indoorAgg.set(name, (indoorAgg.get(name) || 0) + (opTime / 60));
+                    }
+                }
+                const topIndoor = Array.from(indoorAgg.entries()).sort((a, b) => b[1] - a[1])[0];
+                if (topIndoor) {
+                    topIndoorName = topIndoor[0];
+                    topIndoorHours = topIndoor[1];
+                }
+            }
+        }
+
+        dashboardStats = {
+            totalPower,
+            peakRatio: totalPower > 0 ? (peakPower / totalPower) * 100 : 0,
+            avgOutdoorTemp: tempCount > 0 ? tempSum / tempCount : null,
+            topIndoorName,
+            topIndoorHours
+        };
+    }
+
+    function renderDashboardStats() {
+        const totalEl = document.getElementById('kpiTotalPower');
+        const peakEl = document.getElementById('kpiPeakRatio');
+        const tempEl = document.getElementById('kpiOutdoorTemp');
+        const topIndoorEl = document.getElementById('kpiTopIndoor');
+        const topIndoorSubEl = document.getElementById('kpiTopIndoorSub');
+        if (!totalEl || !peakEl || !tempEl || !topIndoorEl || !topIndoorSubEl) return;
+
+        if (!dashboardStats) {
+            totalEl.textContent = '--';
+            peakEl.textContent = '--';
+            tempEl.textContent = '--';
+            topIndoorEl.textContent = '--';
+            topIndoorSubEl.textContent = 'Highest runtime in filtered period';
+            return;
+        }
+
+        totalEl.textContent = `${formatCompactNumber(dashboardStats.totalPower, 1)} kWh`;
+        peakEl.textContent = `${formatCompactNumber(dashboardStats.peakRatio, 1)}%`;
+        tempEl.textContent = dashboardStats.avgOutdoorTemp == null ? '--' : `${formatCompactNumber(dashboardStats.avgOutdoorTemp, 1)} C`;
+        topIndoorEl.textContent = dashboardStats.topIndoorName || '--';
+        topIndoorSubEl.textContent = dashboardStats.topIndoorHours > 0
+            ? `${formatCompactNumber(dashboardStats.topIndoorHours, 1)} runtime hours`
+            : 'Highest runtime in filtered period';
     }
 
     // FIX: always use local-time methods for consistency with calendar
@@ -698,6 +1002,7 @@
     }
 
     function getColumnIndices(headers) {
+        if (columnIndicesCache.has(headers)) return columnIndicesCache.get(headers);
         const lower = headers.map(h => (h || '').toString().toLowerCase().trim());
         const mappings = {
             date:                 ['date','time'],
@@ -709,8 +1014,7 @@
             setpoint_temperature: ['setpoint temperature','setpointtemp','setpoint_temp','setpoint_ave','setpoint_avg'],
             operation_time:       ['operation time','operationtime','hourlyintegratedoperatingtime','hourly_operating_time'],
             indoor_thermo_on_time:['indoor_integratedthermoontime','indoor_thermo_on_time'],
-            // FIX: added 'hourlycooloperatingtime' and 'setpoint_ave' so drawExcessiveCoolingChart uses this too
-            excessive_cooling_time:['hourlycooloperatingtime','hourlycooloperatingtime']
+            excessive_cooling_time:['hourlycooloperatingtime','cool operating time']
         };
         const indices = {};
         for (const [key, variants] of Object.entries(mappings)) {
@@ -719,6 +1023,7 @@
                 if (idx !== -1) { indices[key] = idx; break; }
             }
         }
+        columnIndicesCache.set(headers, indices);
         return indices;
     }
 
@@ -744,6 +1049,7 @@
     }
 
     function getIndoorNightOperationRows(data, ci) {
+        if (indoorNightRowsCache.has(data)) return indoorNightRowsCache.get(data);
         const total = new Map();
         const night = new Map();
         for (let i = 1; i < data.length; i++) {
@@ -758,11 +1064,13 @@
                 night.set(name, (night.get(name) || 0) + hrs);
             }
         }
-        return Array.from(total.keys()).map(name => ({
+        const rows = Array.from(total.keys()).map(name => ({
             name,
             totalTime: total.get(name) || 0,
             nightTime: night.get(name) || 0
         }));
+        indoorNightRowsCache.set(data, rows);
+        return rows;
     }
 
     // ─── Base chart renderer ─────────────────────────────────────────────────
@@ -790,18 +1098,39 @@
     };
 
     function renderChart(ChartClass, containerId, data, _unused, extraOptions = {}) {
+        const container = document.getElementById(containerId);
         if (!data || data.length < 2) {
-            document.getElementById(containerId).innerHTML = t('noValidData');
+            container.innerHTML = t('noValidData');
             return;
         }
         const dataTable = google.visualization.arrayToDataTable(data);
-        const options = Object.assign({}, BASE_CHART_OPTIONS, extraOptions, { title: '' });
-        new ChartClass(document.getElementById(containerId)).draw(dataTable, options);
+        const rect = container.getBoundingClientRect();
+        const explicitHeight = parseInt(container.style.height, 10);
+        const options = {
+            ...BASE_CHART_OPTIONS,
+            ...extraOptions,
+            chartArea: { ...BASE_CHART_OPTIONS.chartArea, ...(extraOptions.chartArea || {}) },
+            legend: { ...BASE_CHART_OPTIONS.legend, ...(extraOptions.legend || {}) },
+            hAxis: { ...BASE_CHART_OPTIONS.hAxis, ...(extraOptions.hAxis || {}) },
+            vAxis: { ...BASE_CHART_OPTIONS.vAxis, ...(extraOptions.vAxis || {}) },
+            tooltip: { ...BASE_CHART_OPTIONS.tooltip, ...(extraOptions.tooltip || {}) },
+            animation: { ...BASE_CHART_OPTIONS.animation, ...(extraOptions.animation || {}) },
+            title: '',
+            width: Math.max(Math.floor(rect.width || container.clientWidth || 0), 320),
+            height: Number.isFinite(explicitHeight) ? explicitHeight : Math.max(Math.floor(rect.height || container.clientHeight || 0), 320)
+        };
+        if (isPreparingPrint) {
+            options.animation = { duration: 0, startup: false };
+            options.chartArea = Object.assign({}, BASE_CHART_OPTIONS.chartArea, { left: '12%', top: '16%', bottom: 90, width: '80%', height: '62%' });
+        }
+        new ChartClass(container).draw(dataTable, options);
     }
 
     // ─── Chart / table drawing ────────────────────────────────────────────────
     function drawAllChartsAndTables() {
         clearAllDisplays();
+        updateDashboardStats();
+        renderDashboardStats();
         drawAggregatedPowerConsumptionChart();
         drawSummaryTable();
         drawPeakOffPeakPieChart();
@@ -826,6 +1155,9 @@
          'indoorNightOperationTable_div','indoorHourlyOperationTable_div',
          'indoorThermostatOnChart_div','excessiveCoolingChart_div'
         ].forEach(id => { document.getElementById(id).innerHTML = msg; });
+        if (displayChartData.indoor) indoorNightRowsCache.delete(displayChartData.indoor);
+        dashboardStats = null;
+        renderDashboardStats();
     }
 
     function resetUI() { clearAllDisplays(); updateReportHeader(); }
@@ -1248,7 +1580,10 @@
         const lowerFileName = file.name.toLowerCase();
 
         const reader = new FileReader();
-        reader.onerror = () => { errorEl.textContent = t('errorReadingFilePrefix'); };
+        reader.onerror = (e) => {
+            errorEl.textContent = t('errorReadingFilePrefix') + ' ' + (e.target?.error?.message || '');
+            console.error('FileReader error:', e.target?.error || e);
+        };
         reader.onload = function(e) {
             try {
                 let result;
@@ -1365,11 +1700,10 @@
 
     function parseXLSX(content) {
         let wb;
-        try {
-            wb = XLSX.read(new Uint8Array(content instanceof ArrayBuffer ? content : new ArrayBuffer(0)), { type: 'array' });
-        } catch {
-            wb = XLSX.read(content, { type: 'binary' });
+        if (!(content instanceof ArrayBuffer)) {
+            throw new Error('Expected ArrayBuffer for XLSX import.');
         }
+        wb = XLSX.read(new Uint8Array(content), { type: 'array' });
         const result = {};
         let metaSet = false;
         for (const sheetName of wb.SheetNames) {
@@ -1451,6 +1785,18 @@
     ];
     const originalHeights = {};
     let isPreparingPrint = false;
+    let printRedrawHandle = null;
+
+    function queuePrintRedraw(delay = 0) {
+        if (printRedrawHandle) window.clearTimeout(printRedrawHandle);
+        printRedrawHandle = window.setTimeout(() => {
+            window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
+                    try { drawAllChartsAndTables(); } catch(e) { console.warn('Print redraw failed', e); }
+                });
+            });
+        }, delay);
+    }
 
     function beforePrintHandler() {
         if (isPreparingPrint) return;
@@ -1473,10 +1819,10 @@
         PRINT_CHART_IDS.forEach(id => {
             const el = document.getElementById(id); if (!el) return;
             originalHeights[id] = el.style.height || '';
-            el.style.height = '360px';
+            el.style.height = id === 'peakOffPeakPieChart_div' ? '340px' : '380px';
         });
         document.querySelectorAll('.main-container').forEach(el => el.classList.add('print-after-header','print-before-footer'));
-        setTimeout(() => { try { drawAllChartsAndTables(); } catch(e) { console.warn('Print redraw failed', e); } }, 250);
+        queuePrintRedraw(80);
     }
 
     function afterPrintHandler() {
@@ -1489,7 +1835,7 @@
         document.getElementById('printFooter').style.display = 'none';
         document.querySelectorAll('.main-container').forEach(el => el.classList.remove('print-after-header','print-before-footer'));
         isPreparingPrint = false;
-        setTimeout(() => { try { drawAllChartsAndTables(); } catch(e) { console.warn('After-print redraw failed', e); } }, 250);
+        queuePrintRedraw(120);
     }
 
     function setupPrintRedraw() {
@@ -1498,6 +1844,6 @@
     }
 
     </script>
+    </div>
 </body>
 </html>
-
