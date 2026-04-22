@@ -188,6 +188,18 @@
             font-size: 11pt;
         }
         .chart-controls label { font-weight: 600; color: #57606f; }
+        .chart-controls select {
+            border: 1px solid #a4b0be;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background-color: #ffffff;
+            font-size: 10pt;
+            min-width: 220px;
+        }
+        .chart-controls select[multiple] {
+            min-height: 180px;
+            padding: 8px 10px;
+        }
         .chart-controls input[type="number"] {
             border: 1px solid #a4b0be;
             padding: 4px 8px;
@@ -195,6 +207,13 @@
             background-color: #ffffff;
             font-size: 11pt;
             transition: border-color 0.3s ease;
+        }
+        .chart-controls input[type="time"] {
+            border: 1px solid #a4b0be;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background-color: #ffffff;
+            font-size: 10pt;
         }
         .chart-controls input[type="number"]:focus {
             outline: none;
@@ -274,6 +293,69 @@
         .data-table tbody tr:nth-child(even) { background-color: #f8f9fa; }
         .data-table tbody tr:hover { background-color: #e8f4fd; }
         .data-table td:not(:first-child), .data-table th:not(:first-child) { text-align: right; }
+        .heatmap-wrap {
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        .heatmap-table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: separate;
+            border-spacing: 2px;
+            margin-top: 10px;
+            table-layout: auto;
+        }
+        .heatmap-table th, .heatmap-table td {
+            border: none;
+            padding: 6px 5px;
+            text-align: center;
+            font-size: 8pt;
+            border-radius: 7px;
+            white-space: nowrap;
+        }
+        .heatmap-table th {
+            background: #f8fafc;
+            color: #334155;
+            font-weight: 700;
+        }
+        .heatmap-table td {
+            color: #0f172a;
+            font-weight: 600;
+            min-width: 40px;
+            height: 24px;
+            font-size: 7pt;
+            line-height: 1;
+        }
+        .heatmap-table th:first-child,
+        .heatmap-table td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+        }
+        .heatmap-table th:first-child {
+            z-index: 2;
+        }
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 10px;
+            font-size: 8.5pt;
+            color: #475569;
+        }
+        .heatmap-legend-bar {
+            flex: 1;
+            height: 10px;
+            border-radius: 999px;
+            border: 1px solid #dbe4ee;
+            background: linear-gradient(90deg, #eff6ff 0%, #93c5fd 35%, #3b82f6 68%, #1d4ed8 100%);
+        }
+        .heatmap-legend-label {
+            white-space: nowrap;
+            font-weight: 600;
+        }
 
         /* Hourly table — single consolidated ruleset */
         .hourly-table {
@@ -339,6 +421,10 @@
             .controls-container, .control-group { flex-direction: column; align-items: stretch; }
             .section-title { font-size: 20px; }
             .kpi-grid { grid-template-columns: 1fr; }
+            .heatmap-table { border-spacing: 2px; }
+            .heatmap-table th, .heatmap-table td { padding: 5px 4px; font-size: 7.5pt; }
+            .heatmap-table td { min-width: 34px; height: 20px; font-size: 6.5pt; }
+            .heatmap-legend { font-size: 8pt; gap: 8px; }
         }
 
         @page { size: A4 portrait; margin: 12mm 10mm; }
@@ -453,9 +539,6 @@
                 <button id="clearDateFilter" class="secondary">Xem T???t C??? Ng??y</button>
             </div>
             <div class="control-group">
-                <button id="printBtn" class="secondary">In B??o c??o ???????</button>
-            </div>
-            <div class="control-group">
                 <label id="languageLabel" for="toggleLangBtn">Ng??n ng???:</label>
                 <button id="toggleLangBtn" class="secondary">EN</button>
             </div>
@@ -463,6 +546,24 @@
         <div style="margin-top: 16px; width: 100%; text-align: center;">
             <p id="selectedDatesSummary" class="selected-dates-summary">Ng??y ???????c ch???n: T???t c???</p>
             <span id="errorMessage" class="error-message"></span>
+        </div>
+        <div class="chart-controls" style="margin-top:16px;">
+            <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;">
+                <div style="display:flex;flex-direction:column;gap:6px;min-width:240px;flex:1 1 240px;">
+                    <label for="peakHoursInput" id="peakHoursInputLabel">Giờ cao điểm</label>
+                    <input type="text" id="peakHoursInput" value="09:30-11:30,17:00-20:00" style="border:1px solid #a4b0be;padding:6px 10px;border-radius:6px;">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;min-width:240px;flex:1 1 240px;">
+                    <label for="normalHoursInput" id="normalHoursInputLabel">Giờ bình thường</label>
+                    <input type="text" id="normalHoursInput" value="04:00-09:30,11:30-17:00,20:00-22:00" style="border:1px solid #a4b0be;padding:6px 10px;border-radius:6px;">
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;min-width:240px;flex:1 1 240px;">
+                    <label for="offPeakHoursInput" id="offPeakHoursInputLabel">Giờ thấp điểm</label>
+                    <input type="text" id="offPeakHoursInput" value="22:00-04:00" style="border:1px solid #a4b0be;padding:6px 10px;border-radius:6px;">
+                </div>
+                <button id="applyTimeWindowBtn" type="button">Áp dụng khung giờ</button>
+            </div>
+            <div id="timeWindowHint" style="margin-top:8px;font-size:10pt;color:#57606f;">Nhập theo dạng 09:30-11:30,17:00-20:00</div>
         </div>
     </div>
 
@@ -504,14 +605,14 @@
                 <div id="systemPowerChartActual" style="width:100%;height:400px;">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? bi???u ?????.</div>
             </div>
 
-            <div id="peakOffPeakPieChart_div_container" class="main-container print-page-break span-4">
-                <h2 class="chart-title">T??? tr???ng ??i???n n??ng Ti??u th??? theo Khung Gi???</h2>
-                <div id="peakOffPeakPieChart_div" style="width:100%;height:400px;">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? bi???u ?????.</div>
-            </div>
-
             <div id="summaryTable_div_container" class="main-container span-4">
                 <h2 class="chart-title">B???ng T???ng h???p D??? li???u D??n n??ng</h2>
                 <div id="summaryTable_div">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? b???ng.</div>
+            </div>
+
+            <div id="peakOffPeakPieChart_div_container" class="main-container print-page-break span-4">
+                <h2 class="chart-title">T??? tr???ng ??i???n n??ng Ti??u th??? theo Khung Gi???</h2>
+                <div id="peakOffPeakPieChart_div" style="width:100%;height:400px;">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? bi???u ?????.</div>
             </div>
 
             <div id="detailedPowerConsumptionChart_div_container" class="main-container print-page-break span-8">
@@ -527,6 +628,28 @@
             <div id="dailyPowerConsumptionChart_div_container" class="main-container print-page-break span-6">
                 <h2 class="chart-title">??i???n n??ng Ti??u th??? &amp; Nhi???t ????? Ngo??i tr???i theo Ng??y</h2>
                 <div id="dailyPowerConsumptionChart_div" style="width:100%;height:500px;">Vui l??ng t???i l??n file d??? li???u ????? hi???n th??? bi???u ?????.</div>
+            </div>
+
+            <div id="avgHourlyPowerTempChart_div_container" class="main-container print-page-break span-12">
+                <h2 class="chart-title">Điện năng tiêu thụ trung bình theo giờ và nhiệt độ ngoài trời trung bình</h2>
+                <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
+                    <label for="avgHourlyOutdoorSelect" id="avgHourlyOutdoorSelectLabel">Hệ thống:</label>
+                    <select id="avgHourlyOutdoorSelect">
+                        <option value="">All outdoor units</option>
+                    </select>
+                </div>
+                <div id="avgHourlyPowerTempChart_div" style="width:100%;height:500px;">Vui lòng tải dữ liệu để hiển thị biểu đồ trung bình theo giờ.</div>
+            </div>
+
+            <div id="powerHeatmapChart_div_container" class="main-container span-12">
+                <h2 class="chart-title">Power Heatmap by Hour and Day</h2>
+                <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:15px;align-items:center;">
+                    <label for="heatmapOutdoorSelect">Outdoor Unit:</label>
+                    <select id="heatmapOutdoorSelect">
+                        <option value="">All outdoor units</option>
+                    </select>
+                </div>
+                <div id="powerHeatmapChart_div">Please upload data to display the heatmap.</div>
             </div>
 
             <div id="peakOffPeakTable_div_container" class="main-container span-12">
@@ -584,6 +707,22 @@
                     <label id="excessiveCoolingShowAllLabel"><input type="checkbox" id="excessiveCoolingShowAll" checked> Hi???n th??? t???t c???</label>
                 </div>
                 <div id="excessiveCoolingChart_div" style="width:100%;height:500px;">Vui l??ng t???i l??n file d??? li???u v?? ?????m b???o c?? ????? c???t (Indoor Name, Setpoint temperature, Operation Time).</div>
+            </div>
+
+            <div id="indoorTempComparisonChart_div_container" class="main-container print-page-break span-12">
+                <h2 class="chart-title">RoomTemp_AVE vs Setpoint_AVE by Indoor Unit</h2>
+                <div class="chart-controls" style="margin-bottom:15px;display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
+                    <div style="display:flex;flex-direction:column;gap:8px;min-width:320px;flex:1 1 320px;">
+                        <label for="indoorTempComparisonSelect" id="indoorTempComparisonSelectLabel">Select indoor units:</label>
+                        <select id="indoorTempComparisonSelect" multiple></select>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:8px;min-width:180px;">
+                        <label for="indoorTempComparisonMax" id="indoorTempComparisonMaxLabel">Maximum units:</label>
+                        <input type="number" id="indoorTempComparisonMax" min="1" max="20" value="5" style="width:90px;">
+                        <div id="indoorTempComparisonHint" style="font-size:10pt;color:#57606f;">Hold Ctrl or Shift to select multiple units.</div>
+                    </div>
+                </div>
+                <div id="indoorTempComparisonChart_div" style="width:100%;height:540px;">Please upload indoor data with Indoor Name, Date, RoomTemp_AVE, and Setpoint_AVE columns.</div>
             </div>
 
             <div id="indoorNightOperationTable_div_container" class="main-container span-12">
@@ -655,6 +794,7 @@
             detailedChartTitle: 'Chi tiết Điện năng Tiêu thụ theo Dàn nóng & Khung giờ',
             timeSeriesTitle: 'Điện năng & Nhiệt độ theo Thời gian',
             dailyTitle: 'Điện năng & Nhiệt độ theo Ngày',
+            heatmapTitle: 'Heatmap Điện năng theo Giờ và Ngày',
             peakOffPeakTableTitle: 'Bảng Phân tích Điện năng theo Khung giờ',
             indoorOperationTitle: 'Thời gian Hoạt động Dàn lạnh theo Nhiệt độ Cài đặt',
             indoorNightTitle: 'Phân bố Thời gian Hoạt động Dàn lạnh (Ngày/Đêm)',
@@ -708,6 +848,7 @@
             detailedChartTitle: 'Detailed Power Consumption by Outdoor Unit & Time Window',
             timeSeriesTitle: 'Power Consumption & Outdoor Temperature over Time',
             dailyTitle: 'Daily Power Consumption & Outdoor Temperature',
+            heatmapTitle: 'Power Heatmap by Hour and Day',
             peakOffPeakTableTitle: 'Power by Time Window Table',
             indoorOperationTitle: 'Indoor Units Operation Time by Setpoint Temperature',
             indoorNightTitle: 'Indoor Unit Operation Distribution (Day/Night)',
@@ -757,7 +898,6 @@
         document.getElementById('uploadAnalyzeBtn').textContent = t('uploadAnalyze');
         document.getElementById('openDatePicker').textContent = t('openDatePicker');
         document.getElementById('clearDateFilter').textContent = t('clearDateFilter');
-        document.getElementById('printBtn').textContent = t('printBtn');
         document.getElementById('languageLabel').textContent = t('langLabel');
         document.getElementById('toggleLangBtn').textContent = t('toggleBtnText');
         document.getElementById('reportTitle').textContent = t('reportTitle');
@@ -769,12 +909,15 @@
             'detailedPowerConsumptionChart_div_container': 'detailedChartTitle',
             'powerConsumptionTimeSeriesChart_div_container': 'timeSeriesTitle',
             'dailyPowerConsumptionChart_div_container': 'dailyTitle',
+            'avgHourlyPowerTempChart_div_container': 'avgHourlyPowerTempTitle',
+            'powerHeatmapChart_div_container': 'heatmapTitle',
             'peakOffPeakTable_div_container': 'peakOffPeakTableTitle',
             'indoorOperationTimeChart_div_container': 'indoorOperationTitle',
             'indoorNightOperationChart_div_Chart_container': 'indoorNightTitle',
             'indoorNightOperationTable_div_container': 'indoorNightTableTitle',
             'indoorThermostatOnChart_div_container': 'thermostatTitle',
             'excessiveCoolingChart_div_container': 'excessiveCoolingTitle',
+            'indoorTempComparisonChart_div_container': 'indoorTempComparisonTitle',
             'indoorHourlyOperationTable_div_container': 'hourlyTableTitle'
         };
         for (const [id, key] of Object.entries(chartTitleMap)) {
@@ -798,6 +941,44 @@
         document.getElementById('nightStartLabel').textContent = t('nightStartLabel');
         document.getElementById('nightEndLabel').textContent = t('nightEndLabel');
         document.getElementById('highlightNightBtn').textContent = t('highlightNightBtn');
+        const indoorTempTitle = document.querySelector('#indoorTempComparisonChart_div_container .chart-title');
+        if (indoorTempTitle) {
+            indoorTempTitle.textContent = currentLang === 'vi'
+                ? 'So sanh RoomTemp_AVE va Setpoint_AVE theo Dan lanh'
+                : 'RoomTemp_AVE vs Setpoint_AVE by Indoor Unit';
+        }
+        const indoorTempSelectLabel = document.getElementById('indoorTempComparisonSelectLabel');
+        const indoorTempMaxLabel = document.getElementById('indoorTempComparisonMaxLabel');
+        const indoorTempHint = document.getElementById('indoorTempComparisonHint');
+        if (indoorTempSelectLabel) indoorTempSelectLabel.textContent = currentLang === 'vi' ? 'Chon dan lanh:' : 'Select indoor units:';
+        if (indoorTempMaxLabel) indoorTempMaxLabel.textContent = currentLang === 'vi' ? 'So dan toi da:' : 'Maximum units:';
+        if (indoorTempHint) indoorTempHint.textContent = currentLang === 'vi'
+            ? 'Giu Ctrl hoac Shift de chon nhieu dan lanh.'
+            : 'Hold Ctrl or Shift to select multiple units.';
+        const avgHourlyTitle = document.querySelector('#avgHourlyPowerTempChart_div_container .chart-title');
+        const avgHourlyLabel = document.getElementById('avgHourlyOutdoorSelectLabel');
+        if (avgHourlyTitle) {
+            avgHourlyTitle.textContent = currentLang === 'vi'
+                ? 'Điện năng tiêu thụ trung bình theo giờ và nhiệt độ ngoài trời trung bình'
+                : 'Average Power Consumption and Outdoor Temperature by Hour';
+        }
+        if (avgHourlyLabel) {
+            avgHourlyLabel.textContent = currentLang === 'vi' ? 'Hệ thống:' : 'System:';
+        }
+
+        const peakLabel = document.getElementById('peakHoursInputLabel');
+        const normalLabel = document.getElementById('normalHoursInputLabel');
+        const offPeakLabel = document.getElementById('offPeakHoursInputLabel');
+        const applyTimeBtn = document.getElementById('applyTimeWindowBtn');
+        const timeHint = document.getElementById('timeWindowHint');
+        if (peakLabel) peakLabel.textContent = currentLang === 'vi' ? 'Giờ cao điểm' : 'Peak hours';
+        if (normalLabel) normalLabel.textContent = currentLang === 'vi' ? 'Giờ bình thường' : 'Normal hours';
+        if (offPeakLabel) offPeakLabel.textContent = currentLang === 'vi' ? 'Giờ thấp điểm' : 'Off-peak hours';
+        if (applyTimeBtn) applyTimeBtn.textContent = currentLang === 'vi' ? 'Áp dụng khung giờ' : 'Apply time windows';
+        if (timeHint) timeHint.textContent = currentLang === 'vi'
+            ? 'Nhập theo dạng 09:30-11:30,17:00-20:00'
+            : 'Use format 09:30-11:30,17:00-20:00';
+        syncTimeWindowInputs();
 
         updateSelectedDatesSummary();
         if (originalChartData.outdoor || originalChartData.indoor || originalChartData.default) drawAllChartsAndTables();
@@ -815,6 +996,14 @@
     let dashboardStats = null;
     const columnIndicesCache = new WeakMap();
     const indoorNightRowsCache = new WeakMap();
+    let heatmapSelectedOutdoor = '';
+    let avgHourlySelectedOutdoor = '';
+    let indoorTempComparisonSelected = [];
+    let timeWindows = {
+        peak: ['09:30-11:30', '17:00-20:00'],
+        normal: ['04:00-09:30', '11:30-17:00', '20:00-22:00'],
+        offPeak: ['22:00-04:00']
+    };
 
     google.charts.setOnLoadCallback(initializeDisplay);
 
@@ -823,9 +1012,9 @@
         selectedDatesSummaryElement = document.getElementById('selectedDatesSummary');
         updateSelectedDatesSummary();
         resetUI();
+        syncTimeWindowInputs();
         setupChartControlsEventListeners();
         applyLanguage(currentLang);
-        setupPrintRedraw();
 
         document.getElementById('openDatePicker').addEventListener('click', openDatePickerModal);
         document.getElementById('closeDatePicker').addEventListener('click', closeDatePickerModal);
@@ -839,9 +1028,6 @@
         });
 
         // FIX: print button — single event listener, no inline onclick
-        document.getElementById('printBtn').addEventListener('click', () => {
-            window.print();
-        });
     }
 
     function setupChartControlsEventListeners() {
@@ -857,11 +1043,92 @@
             topNEl?.addEventListener('change', () => { if (!showAllEl.checked) draw(); });
             showAllEl?.addEventListener('change', (e) => { topNEl.disabled = e.target.checked; draw(); });
         });
+
+        document.getElementById('heatmapOutdoorSelect')?.addEventListener('change', (e) => {
+            heatmapSelectedOutdoor = e.target.value;
+            drawPowerHeatmapChart();
+        });
+        document.getElementById('avgHourlyOutdoorSelect')?.addEventListener('change', (e) => {
+            avgHourlySelectedOutdoor = e.target.value;
+            drawAverageHourlyPowerTempChart();
+        });
+        document.getElementById('applyTimeWindowBtn')?.addEventListener('click', applyTimeWindowConfig);
+
+        document.getElementById('indoorTempComparisonSelect')?.addEventListener('change', handleIndoorTempComparisonSelectionChange);
+        document.getElementById('indoorTempComparisonMax')?.addEventListener('change', () => {
+            syncIndoorTempComparisonSelection(true);
+            drawIndoorTempComparisonChart();
+        });
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     // FIX: extracted shared peak-category logic — single source of truth
+    function parseTimeValueToMinutes(value) {
+        const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+        if (!match) return null;
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+        return (hour * 60) + minute;
+    }
+
+    function parseWindowRanges(input) {
+        return String(input || '')
+            .split(',')
+            .map(part => part.trim())
+            .filter(Boolean)
+            .map(part => {
+                const [start, end] = part.split('-').map(v => v.trim());
+                const startMin = parseTimeValueToMinutes(start);
+                const endMin = parseTimeValueToMinutes(end);
+                if (startMin == null || endMin == null) return null;
+                return { start: startMin, end: endMin, raw: part };
+            })
+            .filter(Boolean);
+    }
+
+    function formatWindowRanges(ranges) {
+        return ranges.join(',');
+    }
+
+    function isMinuteInRange(minuteOfDay, range) {
+        if (range.start === range.end) return true;
+        if (range.start < range.end) return minuteOfDay >= range.start && minuteOfDay < range.end;
+        return minuteOfDay >= range.start || minuteOfDay < range.end;
+    }
+
+    function syncTimeWindowInputs() {
+        const peakInput = document.getElementById('peakHoursInput');
+        const normalInput = document.getElementById('normalHoursInput');
+        const offPeakInput = document.getElementById('offPeakHoursInput');
+        if (peakInput) peakInput.value = formatWindowRanges(timeWindows.peak);
+        if (normalInput) normalInput.value = formatWindowRanges(timeWindows.normal);
+        if (offPeakInput) offPeakInput.value = formatWindowRanges(timeWindows.offPeak);
+    }
+
+    function applyTimeWindowConfig() {
+        const peakRanges = parseWindowRanges(document.getElementById('peakHoursInput')?.value);
+        const normalRanges = parseWindowRanges(document.getElementById('normalHoursInput')?.value);
+        const offPeakRanges = parseWindowRanges(document.getElementById('offPeakHoursInput')?.value);
+        const errorEl = document.getElementById('errorMessage');
+        if (!peakRanges.length || !normalRanges.length || !offPeakRanges.length) {
+            if (errorEl) {
+                errorEl.textContent = currentLang === 'vi'
+                    ? 'Vui lòng nhập đủ khung giờ cao điểm, bình thường và thấp điểm theo định dạng HH:MM-HH:MM.'
+                    : 'Please enter peak, normal, and off-peak ranges in HH:MM-HH:MM format.';
+            }
+            return;
+        }
+        timeWindows = {
+            peak: peakRanges.map(range => range.raw),
+            normal: normalRanges.map(range => range.raw),
+            offPeak: offPeakRanges.map(range => range.raw)
+        };
+        if (errorEl) errorEl.textContent = '';
+        drawAllChartsAndTables();
+    }
+
     function getPeakCategory(dateObj) {
         const hour = dateObj.getHours();
         const minute = dateObj.getMinutes();
@@ -871,6 +1138,82 @@
         // Mon–Sat
         if ((hour === 9 && minute >= 30) || (hour >= 10 && hour < 11) ||
             (hour === 11 && minute < 30) || (hour >= 17 && hour < 20)) return 'peak';
+        return 'normal';
+    }
+
+    function parseTimeValueToMinutes(value) {
+        const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+        if (!match) return null;
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+        return (hour * 60) + minute;
+    }
+
+    function parseWindowRanges(input) {
+        return String(input || '')
+            .split(',')
+            .map(part => part.trim())
+            .filter(Boolean)
+            .map(part => {
+                const [start, end] = part.split('-').map(v => v.trim());
+                const startMin = parseTimeValueToMinutes(start);
+                const endMin = parseTimeValueToMinutes(end);
+                if (startMin == null || endMin == null) return null;
+                return { start: startMin, end: endMin, raw: part };
+            })
+            .filter(Boolean);
+    }
+
+    function formatWindowRanges(ranges) {
+        return ranges.join(',');
+    }
+
+    function isMinuteInRange(minuteOfDay, range) {
+        if (range.start === range.end) return true;
+        if (range.start < range.end) return minuteOfDay >= range.start && minuteOfDay < range.end;
+        return minuteOfDay >= range.start || minuteOfDay < range.end;
+    }
+
+    function syncTimeWindowInputs() {
+        const peakInput = document.getElementById('peakHoursInput');
+        const normalInput = document.getElementById('normalHoursInput');
+        const offPeakInput = document.getElementById('offPeakHoursInput');
+        if (peakInput) peakInput.value = formatWindowRanges(timeWindows.peak);
+        if (normalInput) normalInput.value = formatWindowRanges(timeWindows.normal);
+        if (offPeakInput) offPeakInput.value = formatWindowRanges(timeWindows.offPeak);
+    }
+
+    function applyTimeWindowConfig() {
+        const peakRanges = parseWindowRanges(document.getElementById('peakHoursInput')?.value);
+        const normalRanges = parseWindowRanges(document.getElementById('normalHoursInput')?.value);
+        const offPeakRanges = parseWindowRanges(document.getElementById('offPeakHoursInput')?.value);
+        const errorEl = document.getElementById('errorMessage');
+        if (!peakRanges.length || !normalRanges.length || !offPeakRanges.length) {
+            if (errorEl) {
+                errorEl.textContent = currentLang === 'vi'
+                    ? 'Vui lòng nhập đủ khung giờ cao điểm, bình thường và thấp điểm theo định dạng HH:MM-HH:MM.'
+                    : 'Please enter peak, normal, and off-peak ranges in HH:MM-HH:MM format.';
+            }
+            return;
+        }
+        timeWindows = {
+            peak: peakRanges.map(range => range.raw),
+            normal: normalRanges.map(range => range.raw),
+            offPeak: offPeakRanges.map(range => range.raw)
+        };
+        if (errorEl) errorEl.textContent = '';
+        drawAllChartsAndTables();
+    }
+
+    function getPeakCategory(dateObj) {
+        const minuteOfDay = (dateObj.getHours() * 60) + dateObj.getMinutes();
+        const peakRanges = parseWindowRanges(timeWindows.peak.join(','));
+        const offPeakRanges = parseWindowRanges(timeWindows.offPeak.join(','));
+        const normalRanges = parseWindowRanges(timeWindows.normal.join(','));
+        if (peakRanges.some(range => isMinuteInRange(minuteOfDay, range))) return 'peak';
+        if (offPeakRanges.some(range => isMinuteInRange(minuteOfDay, range))) return 'offPeak';
+        if (normalRanges.some(range => isMinuteInRange(minuteOfDay, range))) return 'normal';
         return 'normal';
     }
 
@@ -909,6 +1252,100 @@
             minimumFractionDigits: decimals,
             maximumFractionDigits: decimals
         }).format(value);
+    }
+
+    function populateOutdoorSelectors() {
+        const selects = [
+            { id: 'heatmapOutdoorSelect', value: heatmapSelectedOutdoor },
+            { id: 'avgHourlyOutdoorSelect', value: avgHourlySelectedOutdoor },
+        ];
+        const outdoorData = getOutdoorData();
+        const names = new Set();
+        if (outdoorData && outdoorData.length > 1) {
+            const ci = getColumnIndices(outdoorData[0]);
+            if (ci.name !== undefined) {
+                for (let i = 1; i < outdoorData.length; i++) {
+                    const name = outdoorData[i][ci.name];
+                    if (name) names.add(String(name).trim());
+                }
+            }
+        }
+        const sortedNames = Array.from(names).filter(Boolean).sort((a, b) => a.localeCompare(b));
+        selects.forEach(({ id, value }) => {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const allLabel = currentLang === 'vi' ? 'Tất cả dàn nóng' : 'All outdoor units';
+            select.innerHTML = `<option value="">${escapeHtml(allLabel)}</option>` +
+                sortedNames.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+            select.value = sortedNames.includes(value) ? value : '';
+        });
+        heatmapSelectedOutdoor = document.getElementById('heatmapOutdoorSelect')?.value || '';
+        avgHourlySelectedOutdoor = document.getElementById('avgHourlyOutdoorSelect')?.value || '';
+    }
+
+    function getIndoorTempComparisonMaxSelection() {
+        const input = document.getElementById('indoorTempComparisonMax');
+        return Math.max(1, Math.min(parseInt(input?.value, 10) || 5, 20));
+    }
+
+    function populateIndoorTempComparisonSelector() {
+        const select = document.getElementById('indoorTempComparisonSelect');
+        if (!select) return;
+        const indoorData = displayChartData.indoor;
+        const names = new Set();
+        if (indoorData && indoorData.length > 1) {
+            const ci = getColumnIndices(indoorData[0]);
+            if (ci.indoor_name !== undefined) {
+                for (let i = 1; i < indoorData.length; i++) {
+                    const name = indoorData[i][ci.indoor_name];
+                    if (name) names.add(String(name).trim());
+                }
+            }
+        }
+        const sortedNames = Array.from(names).filter(Boolean).sort((a, b) => a.localeCompare(b));
+        indoorTempComparisonSelected = indoorTempComparisonSelected
+            .filter(name => sortedNames.includes(name))
+            .slice(0, getIndoorTempComparisonMaxSelection());
+        select.innerHTML = sortedNames.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+        if (!indoorTempComparisonSelected.length && sortedNames.length) {
+            indoorTempComparisonSelected = sortedNames.slice(0, getIndoorTempComparisonMaxSelection());
+        }
+        Array.from(select.options).forEach(option => {
+            option.selected = indoorTempComparisonSelected.includes(option.value);
+        });
+    }
+
+    function syncIndoorTempComparisonSelection(showWarning = false) {
+        const select = document.getElementById('indoorTempComparisonSelect');
+        if (!select) return indoorTempComparisonSelected;
+        const maxSelection = getIndoorTempComparisonMaxSelection();
+        const selected = Array.from(select.selectedOptions).map(option => option.value).filter(Boolean);
+        let nextSelected = selected;
+        if (selected.length > maxSelection) {
+            nextSelected = selected.slice(0, maxSelection);
+            Array.from(select.options).forEach(option => {
+                option.selected = nextSelected.includes(option.value);
+            });
+            if (showWarning) alert(currentLang === 'vi'
+                ? 'Da gioi han theo so dan lanh toi da.'
+                : 'Selection was limited by the maximum number of indoor units.');
+        }
+        indoorTempComparisonSelected = nextSelected;
+        return indoorTempComparisonSelected;
+    }
+
+    function handleIndoorTempComparisonSelectionChange() {
+        syncIndoorTempComparisonSelection(true);
+        drawIndoorTempComparisonChart();
+    }
+
+    function getFilteredOutdoorDataByName(selectedName) {
+        const data = getOutdoorData();
+        if (!data || data.length < 2) return data;
+        if (!selectedName) return data;
+        const ci = getColumnIndices(data[0]);
+        if (ci.name === undefined) return data;
+        return [data[0], ...data.slice(1).filter(row => String(row[ci.name] || '').trim() === selectedName)];
     }
 
     function updateDashboardStats() {
@@ -1012,6 +1449,7 @@
             outdoortemp_ave:      ['outdoortemp_ave','outdoor temp ave','outdoor air temperature (°c)','outdoor air temperature c'],
             indoor_name:          ['indoor name','idu name','name'],
             setpoint_temperature: ['setpoint temperature','setpointtemp','setpoint_temp','setpoint_ave','setpoint_avg'],
+            roomtemp_ave:         ['roomtemp_ave','room temp ave','roomtemp avg','room temperature','room temp'],
             operation_time:       ['operation time','operationtime','hourlyintegratedoperatingtime','hourly_operating_time'],
             indoor_thermo_on_time:['indoor_integratedthermoontime','indoor_thermo_on_time'],
             excessive_cooling_time:['hourlycooloperatingtime','cool operating time']
@@ -1129,6 +1567,8 @@
     // ─── Chart / table drawing ────────────────────────────────────────────────
     function drawAllChartsAndTables() {
         clearAllDisplays();
+        populateOutdoorSelectors();
+        populateIndoorTempComparisonSelector();
         updateDashboardStats();
         renderDashboardStats();
         drawAggregatedPowerConsumptionChart();
@@ -1137,12 +1577,15 @@
         drawDetailedPowerConsumptionChart();
         drawPowerConsumptionTimeSeriesChart();
         drawDailyPowerConsumptionChart();
+        drawAverageHourlyPowerTempChart();
+        drawPowerHeatmapChart();
         drawPeakOffPeakNormalTable();
         drawIndoorOperationTimeChart();
         drawIndoorNightOperationChart();
         drawIndoorNightOperationTable();
         drawIndoorThermostatOnChart();
         drawExcessiveCoolingChart();
+        drawIndoorTempComparisonChart();
         drawIndoorHourlyOperationTable();
     }
 
@@ -1150,10 +1593,10 @@
         const msg = t('noDataMessage');
         ['systemPowerChartActual','summaryTable_div','peakOffPeakPieChart_div',
          'detailedPowerConsumptionChart_div','powerConsumptionTimeSeriesChart_div',
-         'dailyPowerConsumptionChart_div','peakOffPeakTable_div',
+         'dailyPowerConsumptionChart_div','avgHourlyPowerTempChart_div','powerHeatmapChart_div','peakOffPeakTable_div',
          'indoorOperationTimeChart_div','indoorNightOperationChart_div_Chart',
          'indoorNightOperationTable_div','indoorHourlyOperationTable_div',
-         'indoorThermostatOnChart_div','excessiveCoolingChart_div'
+         'indoorThermostatOnChart_div','excessiveCoolingChart_div','indoorTempComparisonChart_div'
         ].forEach(id => { document.getElementById(id).innerHTML = msg; });
         if (displayChartData.indoor) indoorNightRowsCache.delete(displayChartData.indoor);
         dashboardStats = null;
@@ -1345,6 +1788,131 @@
             vAxes: { 0: { title: t('axis.energyKwh') }, 1: { title: t('axis.outdoorTempC') } },
             hAxis: { title: t('axis.dayOfMonth') }
         });
+    }
+
+    function drawAverageHourlyPowerTempChart() {
+        const container = document.getElementById('avgHourlyPowerTempChart_div');
+        const data = getFilteredOutdoorDataByName(avgHourlySelectedOutdoor);
+        if (!container) return;
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.date, ci.powerconsumption, ci.outdoortemp_ave].includes(undefined)) {
+            container.innerHTML = t('missingColumns');
+            return;
+        }
+
+        const hourlyAgg = Array.from({ length: 24 }, (_, hour) => ({
+            hour,
+            powerSum: 0,
+            powerCount: 0,
+            tempSum: 0,
+            tempCount: 0
+        }));
+
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            const dateValue = parseDateTimeString(row[ci.date]);
+            const power = Number(row[ci.powerconsumption]);
+            const temp = Number(row[ci.outdoortemp_ave]);
+            if (!dateValue || isNaN(power) || isNaN(temp)) continue;
+            const bucket = hourlyAgg[dateValue.getHours()];
+            bucket.powerSum += power;
+            bucket.powerCount += 1;
+            bucket.tempSum += temp;
+            bucket.tempCount += 1;
+        }
+
+        const hasData = hourlyAgg.some(item => item.powerCount > 0 || item.tempCount > 0);
+        if (!hasData) { container.innerHTML = t('noValidData'); return; }
+
+        const energyLabel = currentLang === 'vi' ? 'Điện năng tiêu thụ trung bình (kWh)' : 'Avg power consumption (kWh)';
+        const tempLabel = currentLang === 'vi' ? 'Nhiệt độ ngoài trời trung bình (°C)' : 'Avg outdoor temperature (°C)';
+        const chartData = [[currentLang === 'vi' ? 'Giờ' : 'Hour', energyLabel, tempLabel]];
+        hourlyAgg.forEach(item => {
+            chartData.push([
+                `${String(item.hour).padStart(2, '0')}:00`,
+                item.powerCount > 0 ? (item.powerSum / item.powerCount) : null,
+                item.tempCount > 0 ? (item.tempSum / item.tempCount) : null
+            ]);
+        });
+
+        renderChart(google.visualization.ComboChart, 'avgHourlyPowerTempChart_div', chartData, '', {
+            seriesType: 'bars',
+            series: {
+                0: { type: 'bars', targetAxisIndex: 0, color: '#2563eb' },
+                1: { type: 'line', targetAxisIndex: 1, color: '#ef4444', lineWidth: 3, pointSize: 6, pointShape: 'circle' }
+            },
+            vAxes: {
+                0: { title: energyLabel },
+                1: { title: tempLabel }
+            },
+            hAxis: { title: currentLang === 'vi' ? 'Giờ trong ngày' : 'Hour of day' },
+            legend: { position: 'top' }
+        });
+    }
+
+    function drawPowerHeatmapChart() {
+        const container = document.getElementById('powerHeatmapChart_div');
+        const data = getFilteredOutdoorDataByName(heatmapSelectedOutdoor);
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.date, ci.powerconsumption].includes(undefined)) { container.innerHTML = t('missingColumns'); return; }
+
+        const byDateHour = new Map();
+        const dates = new Set();
+        let maxValue = 0;
+
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            const kw = Number(row[ci.powerconsumption]);
+            const d = parseDateTimeString(row[ci.date]);
+            if (!d || isNaN(kw)) continue;
+            const dateKey = formatDateToYYYYMMDD(d);
+            const hour = d.getHours();
+            dates.add(dateKey);
+            if (!byDateHour.has(dateKey)) byDateHour.set(dateKey, Array.from({ length: 24 }, () => 0));
+            const hourly = byDateHour.get(dateKey);
+            hourly[hour] += kw;
+            if (hourly[hour] > maxValue) maxValue = hourly[hour];
+        }
+
+        const sortedDates = Array.from(dates).sort();
+        if (sortedDates.length === 0) { container.innerHTML = t('noValidData'); return; }
+
+        const colorFor = (value) => {
+            if (maxValue <= 0) return '#f8fafc';
+            const ratio = Math.max(0, Math.min(1, value / maxValue));
+            const lightness = 96 - (ratio * 52);
+            return `hsl(211, 88%, ${lightness}%)`;
+        };
+
+        const formatHeatmapValue = (value) => `${formatCompactNumber(value, 1)} kWh`;
+        const legendMid = maxValue > 0 ? maxValue / 2 : 0;
+        let html = '<div class="heatmap-wrap"><table class="heatmap-table"><thead><tr><th>Hour</th>';
+        html += sortedDates.map(d => `<th>${escapeHtml(new Date(d + 'T00:00:00').toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric' }))}</th>`).join('');
+        html += '</tr></thead><tbody>';
+        for (let hour = 0; hour < 24; hour++) {
+            html += `<tr><th>${hour}:00</th>`;
+            for (const dateKey of sortedDates) {
+                const value = byDateHour.get(dateKey)?.[hour] || 0;
+                const tooltipDate = new Date(dateKey + 'T00:00:00').toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                const title = `${tooltipDate} ${hour}:00 - ${escapeHtml(formatHeatmapValue(value))}`;
+                html += `<td style="background:${colorFor(value)}" title="${title}" aria-label="${title}">${escapeHtml(value > 0 ? formatCompactNumber(value, 1) : '0.0')}</td>`;
+            }
+            html += '</tr>';
+        }
+        html += '</tbody></table></div>';
+        html += `<div class="heatmap-legend">
+            <span class="heatmap-legend-label">${escapeHtml(currentLang === 'vi' ? 'Thap' : 'Low')} ${escapeHtml(formatHeatmapValue(0))}</span>
+            <div class="heatmap-legend-bar" aria-hidden="true"></div>
+            <span class="heatmap-legend-label">${escapeHtml(currentLang === 'vi' ? 'Trung binh' : 'Medium')} ${escapeHtml(formatHeatmapValue(legendMid))}</span>
+            <span class="heatmap-legend-label">${escapeHtml(currentLang === 'vi' ? 'Cao' : 'High')} ${escapeHtml(formatHeatmapValue(maxValue))}</span>
+        </div>`;
+        container.innerHTML = html;
     }
 
     function drawPeakOffPeakNormalTable() {
@@ -1555,6 +2123,89 @@
     }
 
     // ─── Night-hours highlight ────────────────────────────────────────────────
+    function drawIndoorTempComparisonChart() {
+        const container = document.getElementById('indoorTempComparisonChart_div');
+        const data = displayChartData.indoor;
+        if (!container) return;
+        if (!data || data.length < 2) { container.innerHTML = t('noValidData'); return; }
+        const ci = getColumnIndices(data[0]);
+        if ([ci.indoor_name, ci.date, ci.roomtemp_ave, ci.setpoint_temperature].includes(undefined)) {
+            container.innerHTML = t('missingColumns');
+            return;
+        }
+
+        const selectedNames = indoorTempComparisonSelected.length
+            ? indoorTempComparisonSelected
+            : syncIndoorTempComparisonSelection(false);
+        if (!selectedNames.length) {
+            container.innerHTML = currentLang === 'vi'
+                ? 'Vui long chon it nhat mot dan lanh de hien thi bieu do.'
+                : 'Select at least one indoor unit to display the chart.';
+            return;
+        }
+
+        const byTimestamp = new Map();
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            const name = String(row[ci.indoor_name] || '').trim();
+            if (!selectedNames.includes(name)) continue;
+            const dateValue = parseDateTimeString(row[ci.date]);
+            const roomTemp = Number(row[ci.roomtemp_ave]);
+            const setpoint = Number(row[ci.setpoint_temperature]);
+            if (!dateValue || isNaN(roomTemp) || isNaN(setpoint)) continue;
+            const key = dateValue.getTime();
+            if (!byTimestamp.has(key)) byTimestamp.set(key, { date: dateValue, values: new Map() });
+            const unitMap = byTimestamp.get(key).values;
+            if (!unitMap.has(name)) {
+                unitMap.set(name, { roomTempSum: 0, setpointSum: 0, count: 0 });
+            }
+            const sample = unitMap.get(name);
+            sample.roomTempSum += roomTemp;
+            sample.setpointSum += setpoint;
+            sample.count += 1;
+        }
+
+        const sortedEntries = Array.from(byTimestamp.values()).sort((a, b) => a.date - b.date);
+        if (!sortedEntries.length) { container.innerHTML = t('noValidData'); return; }
+
+        const chartData = [['Time']];
+        selectedNames.forEach(name => {
+            chartData[0].push(`${name} - RoomTemp_AVE`);
+            chartData[0].push(`${name} - Setpoint_AVE`);
+        });
+
+        sortedEntries.forEach(entry => {
+            const row = [entry.date];
+            selectedNames.forEach(name => {
+                const value = entry.values.get(name);
+                row.push(value ? (value.roomTempSum / value.count) : null);
+                row.push(value ? (value.setpointSum / value.count) : null);
+            });
+            chartData.push(row);
+        });
+
+        const palette = ['#2563eb','#16a34a','#dc2626','#7c3aed','#ea580c','#0f766e','#d97706','#4f46e5','#be185d','#1d4ed8'];
+        const colors = [];
+        const series = {};
+        selectedNames.forEach((_, index) => {
+            const roomColor = palette[(index * 2) % palette.length];
+            const setpointColor = palette[(index * 2 + 1) % palette.length];
+            colors.push(roomColor, setpointColor);
+            series[index * 2] = { lineWidth: 3 };
+            series[index * 2 + 1] = { lineWidth: 2, lineDashStyle: [6, 4] };
+        });
+
+        renderChart(google.visualization.LineChart, 'indoorTempComparisonChart_div', chartData, '', {
+            colors,
+            series,
+            interpolateNulls: false,
+            hAxis: { title: 'Time', format: 'dd/MM HH:mm' },
+            vAxis: { title: currentLang === 'vi' ? 'Nhiet do (C)' : 'Temperature (C)' },
+            chartArea: { left: '9%', top: '10%', width: '82%', height: '72%' },
+            legend: { position: 'right', textStyle: { fontSize: 11 } }
+        });
+    }
+
     function highlightNightHours(defaultStart = 22, defaultEnd = 5) {
         const s = parseInt(document.getElementById('nightStart')?.value ?? defaultStart, 10);
         const e = parseInt(document.getElementById('nightEnd')?.value ?? defaultEnd, 10);
@@ -1779,7 +2430,7 @@
     // ─── Print ────────────────────────────────────────────────────────────────
     const PRINT_CHART_IDS = [
         'systemPowerChartActual','peakOffPeakPieChart_div','detailedPowerConsumptionChart_div',
-        'powerConsumptionTimeSeriesChart_div','dailyPowerConsumptionChart_div',
+        'powerConsumptionTimeSeriesChart_div','dailyPowerConsumptionChart_div','avgHourlyPowerTempChart_div',
         'indoorOperationTimeChart_div','indoorNightOperationChart_div_Chart',
         'indoorThermostatOnChart_div','excessiveCoolingChart_div'
     ];
